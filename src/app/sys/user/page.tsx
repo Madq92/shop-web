@@ -5,7 +5,7 @@ import UserController, {
   UserGender,
   UserStatus,
 } from "@/api/sys/UserController";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Col,
@@ -14,21 +14,24 @@ import {
   Modal,
   Row,
   Select,
+  SelectProps,
   Space,
   Table,
   TableProps,
   Tag,
+  Tree,
 } from "antd";
 import Box from "@/components/box";
 import {
   CheckOutlined,
   CloseOutlined,
-  DeleteOutlined,
   PlusOutlined,
   SearchOutlined,
   SyncOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import RoleController, { RoleDTO } from "@/api/sys/RoleController";
+import { treeDataTranslate } from "@/common/utils";
 
 const { Option } = Select;
 
@@ -72,7 +75,11 @@ export default function UserPage() {
   const [modalDetailVisible, setModalDetailVisible] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<UserDTO>();
   const [queryForm] = Form.useForm<QueryParamType>();
-  const [addRoleVisible, setAddRoleVisible] = useState<boolean>();
+
+  const [userRoleOptions, setUserRoleOptions] = useState<
+    SelectProps["options"]
+  >([]);
+  const [currenUserRoleIds, setCurrenUserRoleIds] = useState<string[]>([]);
 
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -145,8 +152,24 @@ export default function UserPage() {
           <Button
             type="link"
             size="small"
-            onClick={() => {
-              setCurrentUser(userDto);
+            onClick={async () => {
+              RoleController.list().then((roles) => {
+                if (roles && roles.length > 0) {
+                  setUserRoleOptions(
+                    roles.map((role) => {
+                      return {
+                        label: role.roleName,
+                        value: role.roleId,
+                      };
+                    }),
+                  );
+                }
+              });
+              const currentUser = await UserController.detail(userDto.userId);
+              setCurrentUser(currentUser);
+              setCurrenUserRoleIds(
+                currentUser.roles.map((role) => role.roleId),
+              );
               userForm.setFieldsValue(userDto);
               setModalVisible(true);
             }}
@@ -200,14 +223,34 @@ export default function UserPage() {
     doQueryUser(pageNum);
   }, []);
 
+  const resourcesTree = useMemo(() => {
+    if (!currentUser) {
+      return [];
+    }
+    const roleMenuList = currentUser.resources.map((resourceDto) => ({
+      title: resourceDto.resourceName,
+      key: resourceDto.resourceId,
+      parentId: resourceDto.parentResourceId,
+    }));
+    return treeDataTranslate(roleMenuList, "key", "parentId");
+  }, [currentUser]);
+
   const handleSubmit = () => {
     userForm.validateFields().then(async (userDTO) => {
+      const user = {
+        ...userDTO,
+        roles: currenUserRoleIds.map((roleId) => {
+          return {
+            roleId,
+          } as RoleDTO;
+        }),
+      };
       if (currentUser) {
         // 编辑
-        await UserController.edit(currentUser.userId, userDTO);
+        await UserController.edit(currentUser.userId, user);
       } else {
         // 创建
-        await UserController.create(userDTO);
+        await UserController.create(user);
       }
       await doQueryUser(1);
       setModalVisible(false);
@@ -243,6 +286,10 @@ export default function UserPage() {
   const reloadData = () => {
     setPageNum(1);
     doQueryUser(1);
+  };
+
+  const handleUserRoleChange = (value: string[]) => {
+    setCurrenUserRoleIds(value);
   };
 
   return (
@@ -367,17 +414,24 @@ export default function UserPage() {
             <Input placeholder="例如: admin@qq.com" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
-            <Select placeholder="请选择性别" defaultValue={currentUser?.gender}>
+            <Select placeholder="请选择性别">
               <Option value="MALE">男</Option>
               <Option value="FEMALE">女</Option>
             </Select>
           </Form.Item>
+          <Form.Item label="角色">
+            <Select
+              mode="multiple"
+              allowClear
+              placeholder="添加角色"
+              onChange={handleUserRoleChange}
+              value={currenUserRoleIds}
+              options={userRoleOptions}
+            />
+          </Form.Item>
           {currentUser && (
             <Form.Item name="status" label="状态">
-              <Select
-                placeholder="请选择状态"
-                defaultValue={currentUser.status}
-              >
+              <Select placeholder="请选择状态">
                 <Option value="ENABLE">启用</Option>
                 <Option value="DISABLE">停用</Option>
               </Select>
@@ -430,33 +484,17 @@ export default function UserPage() {
               {currentUser?.roles &&
                 currentUser?.roles.map((role, index) => {
                   return (
-                    <Tag
-                      key={index}
-                      closable={{
-                        closeIcon: <DeleteOutlined />,
-                        "aria-label": "Close Button",
-                      }}
-                      onClose={console.log}
-                    >
+                    <Tag color="#f50" key={index}>
                       {role.roleName}
                     </Tag>
                   );
                 })}
-
-              {addRoleVisible ? (
-                <Input type="text" size="small" style={{ width: 78 }} />
-              ) : (
-                <Tag onClick={() => setAddRoleVisible(true)}>
-                  <PlusOutlined /> 添加角色
-                </Tag>
-              )}
             </Form.Item>
 
             <Form.Item label="资源">
-              {currentUser?.resources &&
-                currentUser?.resources.map((resource, index) => {
-                  return <Tag key={index}>{resource.resourceName}</Tag>;
-                })}
+              <div className="p-2">
+                <Tree treeData={resourcesTree}></Tree>
+              </div>
             </Form.Item>
           </Form>
         </div>

@@ -31,18 +31,6 @@ export default class UserController extends BaseController {
   static del(userId: string) {
     return super.DELETE<boolean>(`/user/${userId}`);
   }
-
-  static addRole(userId: string, params: UserAddRoleReq) {
-    return super.POST<boolean>(`/user/${userId}/role`, params);
-  }
-
-  static delRole(userId: string, params: UserDelRoleReq) {
-    return super.POST<boolean>(`/user/${userId}/role`, params);
-  }
-
-  static roleList(userId: string) {
-    return super.POST<PageDataType<RoleDTO>>(`/user/${userId}/role`);
-  }
 }
 
 export enum UserStatus {
@@ -78,23 +66,14 @@ export type UserLoginReq = {
 };
 
 export type UserPageReq = PageReq & {
-  userName?: string;
+  name?: string;
+  email?: string;
+  phonenumber?: string;
+  sex?: string;
+  status?: string;
 };
 
 export type PageReq = {
   pageSize: number;
   pageNum: number;
-};
-
-export type UserAddRoleReq = {
-  roleIds: number[];
-};
-
-export type UserDelRoleReq = {
-  roleIds: number[];
-};
-
-export type UserUpdatePasswordReq = {
-  newPassword: string;
-  oldPassword: string;
 };

@@ -3,6 +3,7 @@
 import UserController, {
   UserDTO,
   UserGender,
+  UserPageReq,
   UserStatus,
 } from "@/api/sys/UserController";
 import { useEffect, useMemo, useState } from "react";
@@ -32,16 +33,6 @@ import {
 import dayjs from "dayjs";
 import RoleController, { RoleDTO } from "@/api/sys/RoleController";
 import { treeDataTranslate } from "@/common/utils";
-
-const { Option } = Select;
-
-type QueryParamType = {
-  name: string;
-  email: string;
-  phonenumber: string;
-  sex: string;
-  status: string;
-};
 
 const UserGenderTag: React.FC<{ genderStr: string | undefined }> = ({
   genderStr,
@@ -74,7 +65,7 @@ export default function UserPage() {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalDetailVisible, setModalDetailVisible] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<UserDTO>();
-  const [queryForm] = Form.useForm<QueryParamType>();
+  const [queryForm] = Form.useForm<UserPageReq>();
 
   const [userRoleOptions, setUserRoleOptions] = useState<
     SelectProps["options"]
@@ -292,6 +283,32 @@ export default function UserPage() {
     setCurrenUserRoleIds(value);
   };
 
+  const userStatusOption = [
+    {
+      value: "ENABLE",
+      label: "启用",
+    },
+    {
+      value: "DISABLE",
+      label: "停用",
+    },
+  ];
+
+  const userGenderOption = [
+    {
+      value: "MALE",
+      label: "男",
+    },
+    {
+      value: "FEMALE",
+      label: "女",
+    },
+    {
+      value: "NONE",
+      label: "未知",
+    },
+  ];
+
   return (
     <>
       <Box>
@@ -314,19 +331,12 @@ export default function UserPage() {
             </Col>
             <Col span={3}>
               <Form.Item name="status" label="状态">
-                <Select>
-                  <Option value="ENABLE">启用</Option>
-                  <Option value="DISABLE">停用</Option>
-                </Select>
+                <Select options={userStatusOption}></Select>
               </Form.Item>
             </Col>
             <Col span={3}>
               <Form.Item name="gender" label="性别">
-                <Select>
-                  <Option value="MALE">男</Option>
-                  <Option value="FEMALE">女</Option>
-                  <Option value="NONE">未知</Option>
-                </Select>
+                <Select options={userGenderOption}></Select>
               </Form.Item>
             </Col>
           </Row>
@@ -414,10 +424,10 @@ export default function UserPage() {
             <Input placeholder="例如: admin@qq.com" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
-            <Select placeholder="请选择性别">
-              <Option value="MALE">男</Option>
-              <Option value="FEMALE">女</Option>
-            </Select>
+            <Select
+              placeholder="请选择性别"
+              options={userGenderOption}
+            ></Select>
           </Form.Item>
           <Form.Item label="角色">
             <Select
@@ -431,10 +441,10 @@ export default function UserPage() {
           </Form.Item>
           {currentUser && (
             <Form.Item name="status" label="状态">
-              <Select placeholder="请选择状态">
-                <Option value="ENABLE">启用</Option>
-                <Option value="DISABLE">停用</Option>
-              </Select>
+              <Select
+                placeholder="请选择状态"
+                options={userStatusOption}
+              ></Select>
             </Form.Item>
           )}
           <div className="text-right">

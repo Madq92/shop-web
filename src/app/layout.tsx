@@ -149,6 +149,10 @@ const navMain = [
         title: "资源管理",
         url: "/sys/resource",
       },
+      {
+        title: "系统配置",
+        url: "/sys/config",
+      },
     ],
   },
 ];

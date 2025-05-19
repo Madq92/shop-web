@@ -37,9 +37,7 @@ axiosInstance.interceptors.response.use(
     // 1.401清除本地token
     if (status === 401) {
       setToken(null);
-      return Promise.reject(
-        new Error("您未登录，或者登录已经超时，请先登录！"),
-      );
+      return Promise.reject(new Error("notLogin"));
     }
 
     // 2.header包含refreshedtoken时，更新token

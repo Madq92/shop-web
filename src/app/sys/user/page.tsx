@@ -264,7 +264,7 @@ export default function UserPage() {
   };
 
   const handleUserDelete = async (userId: string) => {
-    await UserController.del(userId);
+    await UserController.delete(userId);
     doQueryUser(1);
   };
 

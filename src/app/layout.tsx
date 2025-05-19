@@ -3,7 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@ant-design/v5-patch-for-react-19";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Login from "@/app/login/page";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
@@ -34,6 +34,8 @@ import { NavMainProps } from "@/components/nav-main";
 import { UserProps } from "@/components/nav-user";
 import GlobalNotification from "@/components/global-notification";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { getToken } from "@/common/utils";
+import { useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -169,9 +171,18 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
+  const router = useRouter();
   console.log("pathname", pathname);
 
-  if (pathname.includes("/login")) {
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      // 未登录
+      router.push("/login");
+    }
+  }, [pathname, router]);
+
+  if (pathname.startsWith("/login")) {
     // 判断有没有登录，没有登录跳转登录页面，已登录返回首页
     return (
       <BodyElement>

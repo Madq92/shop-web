@@ -28,8 +28,12 @@ export default class UserController extends BaseController {
     return super.PUT<boolean>(`/user/${userId}`, { status: "DISABLE" });
   }
 
-  static del(userId: string) {
+  static delete(userId: string) {
     return super.DELETE<boolean>(`/user/${userId}`);
+  }
+
+  static login(req: UserLoginReq) {
+    return super.POST<UserLoginInfoResp>(`/user/login`, req);
   }
 }
 
@@ -65,6 +69,10 @@ export type UserLoginReq = {
   password: string;
 };
 
+export type UserLoginInfoResp = {
+  token: string;
+  user: UserDTO;
+};
 export type UserPageReq = PageReq & {
   name?: string;
   email?: string;

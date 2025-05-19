@@ -12,6 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import UserController, { UserLoginReq } from "@/api/sys/UserController";
+import { setToken } from "@/common/utils";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
@@ -19,34 +22,19 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const url = "http://localhost:8080/user/login";
-    const requestBody = {
+    const userLoginInfoResp = await UserController.login({
       email,
       password,
-    };
+    } as UserLoginReq);
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Login successful:", data);
-      // 你可以在这里添加登录成功后的跳转逻辑，例如使用 useRouter 或 window.location
-    } catch (error) {
-      console.error("Login failed:", error);
+    if (userLoginInfoResp.token) {
+      setToken(userLoginInfoResp.token);
+      router.push("/sys/user");
     }
   };
 

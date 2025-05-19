@@ -20,18 +20,12 @@ const globalConfig = {
   } as AxiosRequestConfig,
 };
 
-function showErrorMessage(
-  message: string | { showClose: boolean; message: string },
-) {
-  const msg = typeof message === "string" ? message : message.message;
+function showErrorMessage(type: string, message: string) {
   if (window.parent) {
     window.parent.postMessage(
       {
-        type: "message",
-        data: {
-          type: "error",
-          text: msg,
-        },
+        type,
+        message,
       },
       "*",
     );
@@ -93,20 +87,20 @@ export async function commonRequest<D>(
         return Promise.resolve(result.data);
       } else {
         if (showError) {
-          showErrorMessage({
-            showClose: true,
-            message: result.errorMessage ? result.errorMessage : "数据请求失败",
-          });
+          showErrorMessage(
+            "error",
+            result.errorMessage ? result.errorMessage : "数据请求失败",
+          );
         }
         return Promise.reject(result);
       }
     } catch (error) {
-      if (showError) {
-        const err = error as Error;
-        showErrorMessage({
-          showClose: true,
-          message: err ? err.message : "网络异常，请稍后重试",
-        });
+      console.log("error:", error);
+      const err = error as Error;
+      if (err && err.message === "notLogin") {
+        showErrorMessage("notLogin", "您未登录，或者登录已经超时，请先登录！");
+      } else {
+        showErrorMessage("error", err ? err.message : "网络异常，请稍后重试");
       }
       return Promise.reject(error);
     }
@@ -303,21 +297,19 @@ export const upload = async (
           resolve(res);
         } else {
           if (showError)
-            showErrorMessage({
-              showClose: true,
-              message: res.data.errorMessage
-                ? res.data.errorMessage
-                : "数据请求失败",
-            });
+            showErrorMessage(
+              "error",
+              res.data.errorMessage ? res.data.errorMessage : "数据请求失败",
+            );
           reject("数据请求失败");
         }
       })
       .catch((e) => {
         if (showError)
-          showErrorMessage({
-            showClose: true,
-            message: e.errorMessage ? e.errorMessage : "网络请求错误",
-          });
+          showErrorMessage(
+            "error",
+            e.errorMessage ? e.errorMessage : "网络请求错误",
+          );
         reject(e);
       });
   });

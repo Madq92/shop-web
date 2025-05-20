@@ -54,7 +54,7 @@ export async function commonRequest<D>(
     ...globalConfig.requestOption,
     ...requestOption,
   };
-  const { showError, throttleFlag, throttleTimeout } = finalOption;
+  const { throttleFlag, throttleTimeout } = finalOption;
 
   if (ajaxThrottleSet.has(url) && throttleFlag) {
     return Promise.reject();
@@ -86,12 +86,10 @@ export async function commonRequest<D>(
       if (result instanceof Blob || result.success) {
         return Promise.resolve(result.data);
       } else {
-        if (showError) {
-          showErrorMessage(
-            "error",
-            result.errorMessage ? result.errorMessage : "数据请求失败",
-          );
-        }
+        showErrorMessage(
+          "error",
+          result.errorMessage ? result.errorMessage : "数据请求失败",
+        );
         return Promise.reject(result);
       }
     } catch (error) {

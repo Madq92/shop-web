@@ -338,30 +338,30 @@ export function encrypt(value: string): string | null {
   return encodeURIComponent(encrypt.encrypt(value));
 }
 
-export function getToken() {
-  return sessionStorage.getItem("token");
+export function getTokenValue() {
+  return sessionStorage.getItem("tokenValue");
 }
 
-export function setToken(token: string | null | undefined) {
+export function setTokenValue(token: string | null | undefined) {
   if (token == null || token === "") {
-    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("tokenValue");
   } else {
-    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("tokenValue", token);
   }
 }
 
-export function getAppId() {
-  const appId = sessionStorage.getItem("appId");
-  return appId != null ? appId : undefined;
+export function getTokenName() {
+  return sessionStorage.getItem("tokenName");
 }
 
-export function setAppId(appId: string | null | undefined) {
-  if (appId == null || appId === "") {
-    sessionStorage.removeItem("appId");
+export function setTokenName(token: string | null | undefined) {
+  if (token == null || token === "") {
+    sessionStorage.removeItem("tokenName");
   } else {
-    sessionStorage.setItem("appId", appId);
+    sessionStorage.setItem("tokenName", token);
   }
 }
+
 
 export function traversalTree(
   treeNode: ANY_OBJECT,

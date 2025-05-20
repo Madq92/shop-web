@@ -1,5 +1,9 @@
 import axios, { AxiosInstance, AxiosPromise, AxiosResponse } from "axios";
-import { getToken, setToken } from "@/common/utils/index";
+import {
+  getTokenName,
+  getTokenValue,
+  setTokenValue,
+} from "@/common/utils/index";
 import { ResponseDataType } from "./types";
 import { serverDefaultCfg } from "@/common/http/config";
 
@@ -21,8 +25,11 @@ const axiosInstance: AxiosInstance = axios.create({
 // 1.添加请求头，添加token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = getToken();
-    if (token != null) config.headers["satoken"] = token;
+    const tokenValue = getTokenValue();
+    const tokenName = getTokenName();
+    if (tokenValue != null && tokenName != null) {
+      config.headers[tokenName] = tokenValue;
+    }
     return config;
   },
   (error) => {
@@ -36,30 +43,33 @@ axiosInstance.interceptors.response.use(
     const { data, status } = response;
     // 1.401清除本地token
     if (status === 401) {
-      setToken(null);
-      return Promise.reject(new Error("notLogin"));
+      setTokenValue(null);
+      setTokenValue(null);
+      const message = (data && data.errorMessage) || "登录失败";
+      return Promise.reject({ type: "notLogin", message });
     }
 
     // 2.header包含refreshedtoken时，更新token
     if (response.headers["refreshedtoken"] != null) {
-      setToken(response.headers["refreshedtoken"]);
+      setTokenValue(response.headers["refreshedtoken"]);
     }
 
-    // 3.同一异常处理
-    if (!(response.data instanceof Blob) && !response.data.success) {
-      return Promise.reject(
-        new Error(response.data.errorMessage || "请求失败，请稍后重试"),
-      );
+    // 3.文件处理
+    if (response.data instanceof Blob) {
+      return data;
     }
 
-    return data;
+    // 3.统一异常处理
+    if (data && data.success) {
+      return data.data;
+    } else {
+      const message = data.errorMessage || "服务器异常，请稍后重试";
+      return Promise.reject({ type: "error", message });
+    }
   },
   (error) => {
-    let message = "网络异常，请稍后重试";
-    if (error && error.response) {
-      message = error.response.data.errorMessage;
-    }
-    return Promise.reject(new Error(message));
+    console.log("axios error:", error);
+    return Promise.reject({ type: "error", message: "网络异常，请稍后重试" });
   },
 );
 

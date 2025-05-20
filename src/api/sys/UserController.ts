@@ -70,7 +70,8 @@ export type UserLoginReq = {
 };
 
 export type UserLoginInfoResp = {
-  token: string;
+  tokenNamea: string;
+  tokenValuea: string;
   user: UserDTO;
 };
 export type UserPageReq = PageReq & {

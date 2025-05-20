@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import UserController, { UserLoginReq } from "@/api/sys/UserController";
-import { setToken } from "@/common/utils";
+import { setTokenName, setTokenValue } from "@/common/utils";
 import { useRouter } from "next/navigation";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -27,19 +29,29 @@ export function LoginForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const userLoginInfoResp = await UserController.login({
+    UserController.login({
       email,
       password,
-    } as UserLoginReq);
-
-    if (userLoginInfoResp.token) {
-      setToken(userLoginInfoResp.token);
-      router.push("/sys/user");
-    }
+    } as UserLoginReq)
+      .then((userLoginInfoResp) => {
+        if (userLoginInfoResp.tokenValuea && userLoginInfoResp.tokenNamea) {
+          setTokenValue(userLoginInfoResp.tokenValuea);
+          setTokenName(userLoginInfoResp.tokenNamea);
+          router.push("/sys/user");
+        } else {
+          toast("登录失败");
+        }
+      })
+      .catch((e) => {
+        console.log("登录失败", e);
+        const message = (e && e.message) || "登录失败";
+        toast.custom(() => <div className="text-red-500">{message}</div>);
+      });
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Toaster position="top-center" />
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>

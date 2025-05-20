@@ -32,10 +32,10 @@ import {
 import { TeamProps } from "@/components/team-switcher";
 import { NavMainProps } from "@/components/nav-main";
 import { UserProps } from "@/components/nav-user";
-import GlobalNotification from "@/components/global-notification";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { getToken } from "@/common/utils";
+import { getTokenValue } from "@/common/utils";
 import { useEffect } from "react";
+import { notification } from "antd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -172,15 +172,38 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
+  const [api, contextHolder] = notification.useNotification();
   console.log("pathname", pathname);
 
   useEffect(() => {
-    const token = getToken();
+    const token = getTokenValue();
     if (!token) {
       // 未登录
       router.push("/login");
     }
   }, [pathname, router]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // 可选：验证来源
+      // if (event.origin !== 'https://yourdomain.com') return;
+      console.log("收到消息:", event.data);
+      // 根据消息内容处理逻辑
+      if (event.data?.type === "error") {
+        // 触发错误提示或其他 UI 反馈
+        api.open({ message: event.data.text });
+      } else if (event.data?.type === "notLogin") {
+        router.push("/login");
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
 
   if (pathname.startsWith("/login")) {
     // 判断有没有登录，没有登录跳转登录页面，已登录返回首页
@@ -235,7 +258,7 @@ export default function RootLayout({
             </div>
           </header>
           <main>
-            <GlobalNotification />
+            {contextHolder}
             <div className="p-6 bg-gray-50 block min-h-120">
               <AntdRegistry>{children}</AntdRegistry>
             </div>

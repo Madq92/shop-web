@@ -5,6 +5,10 @@ export default class LoginController extends BaseController {
   static login(req: UserLoginReq) {
     return super.POST<UserLoginInfoResp>(`/login`, req, { loginRequest: true });
   }
+
+  static logout() {
+    return super.POST<UserLoginInfoResp>(`/logout`);
+  }
 }
 
 export type UserLoginReq = {

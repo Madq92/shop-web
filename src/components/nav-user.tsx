@@ -25,6 +25,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import LoginController from "@/api/sys/LoginController";
+import { useRouter } from "next/navigation";
 
 export interface UserProps {
   name: string;
@@ -34,7 +37,12 @@ export interface UserProps {
 
 export function NavUser({ user }: { user: UserProps }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
 
+  const handleLogout = async () => {
+    await LoginController.logout();
+    router.push("/login");
+  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -98,7 +106,9 @@ export function NavUser({ user }: { user: UserProps }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
-              Log out
+              <Button variant="ghost" onClick={handleLogout}>
+                Log out
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

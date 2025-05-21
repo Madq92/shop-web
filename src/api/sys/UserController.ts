@@ -31,10 +31,6 @@ export default class UserController extends BaseController {
   static delete(userId: string) {
     return super.DELETE<boolean>(`/user/${userId}`);
   }
-
-  static login(req: UserLoginReq) {
-    return super.POST<UserLoginInfoResp>(`/user/login`, req);
-  }
 }
 
 export enum UserStatus {
@@ -69,11 +65,6 @@ export type UserLoginReq = {
   password: string;
 };
 
-export type UserLoginInfoResp = {
-  tokenNamea: string;
-  tokenValuea: string;
-  user: UserDTO;
-};
 export type UserPageReq = PageReq & {
   name?: string;
   email?: string;

@@ -12,11 +12,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import UserController, { UserLoginReq } from "@/api/sys/UserController";
+import { UserLoginReq } from "@/api/sys/UserController";
 import { setTokenName, setTokenValue } from "@/common/utils";
 import { useRouter } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import LoginController from "@/api/sys/LoginController";
 
 export function LoginForm({
   className,
@@ -28,24 +29,23 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    UserController.login({
+    LoginController.login({
       email,
       password,
     } as UserLoginReq)
       .then((userLoginInfoResp) => {
-        if (userLoginInfoResp.tokenValuea && userLoginInfoResp.tokenNamea) {
-          setTokenValue(userLoginInfoResp.tokenValuea);
-          setTokenName(userLoginInfoResp.tokenNamea);
+        if (userLoginInfoResp.tokenValue && userLoginInfoResp.tokenName) {
+          setTokenValue(userLoginInfoResp.tokenValue);
+          setTokenName(userLoginInfoResp.tokenName);
           router.push("/sys/user");
         } else {
-          toast("登录失败");
+          toast.warning("登录失败，请重试。");
         }
       })
       .catch((e) => {
         console.log("登录失败", e);
-        const message = (e && e.message) || "登录失败";
-        toast.custom(() => <div className="text-red-500">{message}</div>);
+        const message = (e && e.errorMessage) || "登录失败，请重试。";
+        toast.warning(message);
       });
   };
 

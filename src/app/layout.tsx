@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@ant-design/v5-patch-for-react-19";
 import { usePathname, useRouter } from "next/navigation";
-import Login from "@/app/login/page";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
@@ -33,9 +32,9 @@ import { TeamProps } from "@/components/team-switcher";
 import { NavMainProps } from "@/components/nav-main";
 import { UserProps } from "@/components/nav-user";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { getTokenValue } from "@/common/utils";
 import { useEffect } from "react";
 import { notification } from "antd";
+import Login from "@/app/login/page";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -176,24 +175,17 @@ export default function RootLayout({
   console.log("pathname", pathname);
 
   useEffect(() => {
-    const token = getTokenValue();
-    if (!token) {
-      // 未登录
-      router.push("/login");
-    }
-  }, [pathname, router]);
-
-  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // 可选：验证来源
       // if (event.origin !== 'https://yourdomain.com') return;
       console.log("收到消息:", event.data);
+      if (event.data?.relogin) {
+        router.push("/login");
+      }
       // 根据消息内容处理逻辑
       if (event.data?.type === "error") {
         // 触发错误提示或其他 UI 反馈
-        api.open({ message: event.data.text });
-      } else if (event.data?.type === "notLogin") {
-        router.push("/login");
+        api.open({ message: event.data.message });
       }
     };
 

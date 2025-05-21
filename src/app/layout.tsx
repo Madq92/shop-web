@@ -33,8 +33,9 @@ import { NavMainProps } from "@/components/nav-main";
 import { UserProps } from "@/components/nav-user";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useEffect } from "react";
-import { notification } from "antd";
 import Login from "@/app/login/page";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -171,7 +172,6 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const [api, contextHolder] = notification.useNotification();
   console.log("pathname", pathname);
 
   useEffect(() => {
@@ -185,7 +185,7 @@ export default function RootLayout({
       // 根据消息内容处理逻辑
       if (event.data?.type === "error") {
         // 触发错误提示或其他 UI 反馈
-        api.open({ message: event.data.message });
+        toast.warning(event.data.message);
       }
     };
 
@@ -250,7 +250,7 @@ export default function RootLayout({
             </div>
           </header>
           <main>
-            {contextHolder}
+            <Toaster position="top-center" />
             <div className="p-6 bg-gray-50 block min-h-120">
               <AntdRegistry>{children}</AntdRegistry>
             </div>

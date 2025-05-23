@@ -13,7 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { UserLoginReq } from "@/api/sys/UserController";
-import { setTokenName, setTokenValue } from "@/common/utils";
+import {
+  setCurrentUserInfo,
+  setTokenName,
+  setTokenValue,
+} from "@/common/utils";
 import { useRouter } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -37,6 +41,7 @@ export function LoginForm({
         if (userLoginInfoResp.tokenValue && userLoginInfoResp.tokenName) {
           setTokenValue(userLoginInfoResp.tokenValue);
           setTokenName(userLoginInfoResp.tokenName);
+          setCurrentUserInfo(userLoginInfoResp.user);
           router.push("/sys/user");
         } else {
           toast.warning("登录失败，请重试。");

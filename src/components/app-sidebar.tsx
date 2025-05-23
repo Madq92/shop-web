@@ -2,8 +2,7 @@
 
 import * as React from "react";
 
-import { NavMain, NavMainProps } from "@/components/nav-main";
-import { NavUser, UserProps } from "@/components/nav-user";
+import { NavMain } from "@/components/nav-main";
 import { TeamProps, TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -12,18 +11,15 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import NavUser from "./nav-user";
 
 // This is sample data.
 
 export function AppSidebar({
-  navMain,
   teams,
-  user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  navMain: NavMainProps[];
   teams: TeamProps[];
-  user: UserProps;
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -31,10 +27,10 @@ export function AppSidebar({
         <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

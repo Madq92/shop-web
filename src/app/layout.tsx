@@ -19,17 +19,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  GalleryVerticalEnd,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react";
+import { AudioWaveform, Command, GalleryVerticalEnd } from "lucide-react";
 import { TeamProps } from "@/components/team-switcher";
-import { NavMainProps } from "@/components/nav-main";
 import { UserProps } from "@/components/nav-user";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { useEffect } from "react";
@@ -71,94 +62,6 @@ const teams = [
   },
 ];
 
-const navMain = [
-  {
-    title: "Playground",
-    url: "#",
-    icon: SquareTerminal,
-    isActive: true,
-    items: [
-      {
-        title: "History",
-        url: "#",
-      },
-      {
-        title: "Starred",
-        url: "#",
-      },
-      {
-        title: "Settings",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "Models",
-    url: "#",
-    icon: Bot,
-    items: [
-      {
-        title: "Genesis",
-        url: "#",
-      },
-      {
-        title: "Explorer",
-        url: "#",
-      },
-      {
-        title: "Quantum",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "Documentation",
-    url: "#",
-    icon: BookOpen,
-    items: [
-      {
-        title: "Introduction",
-        url: "#",
-      },
-      {
-        title: "Get Started",
-        url: "#",
-      },
-      {
-        title: "Tutorials",
-        url: "#",
-      },
-      {
-        title: "Changelog",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "基础设置",
-    url: "/sys",
-    icon: Settings2,
-    items: [
-      {
-        title: "用户管理",
-        url: "/sys/user",
-      },
-      {
-        title: "角色管理",
-        url: "/sys/role",
-      },
-      {
-        title: "资源管理",
-        url: "/sys/resource",
-      },
-      {
-        title: "系统配置",
-        url: "/sys/config",
-      },
-    ],
-  },
-];
-
 const BodyElement = ({ children }: { children: React.ReactNode }) => (
   <html lang="en">
     <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -172,9 +75,14 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
+  // const [title, setTitle] = useState<string>("");
+  // const [parentTitle, setParentTitle] = useState<string>("Home");
+  // const [navTree, setNavTree] = useState<NavMainProps[]>(navMain);
+
   console.log("pathname", pathname);
 
   useEffect(() => {
+    console.log("addEventListener", pathname);
     const handleMessage = (event: MessageEvent) => {
       // 可选：验证来源
       // if (event.origin !== 'https://yourdomain.com') return;
@@ -206,28 +114,10 @@ export default function RootLayout({
     );
   }
 
-  let parentTitle = "Home";
-  let title = "";
-  navMain.forEach((item) => {
-    for (let i = 0; i < item.items!.length; i++) {
-      if (pathname === item.items![i].url) {
-        item.isActive = true;
-        parentTitle = item.title;
-        title = item.items![i].title;
-        return;
-      } else {
-        item.isActive = false;
-      }
-    }
-  });
   return (
     <BodyElement>
       <SidebarProvider>
-        <AppSidebar
-          teams={teams as TeamProps[]}
-          navMain={navMain as NavMainProps[]}
-          user={user as UserProps}
-        />
+        <AppSidebar teams={teams as TeamProps[]} user={user as UserProps} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
@@ -239,11 +129,11 @@ export default function RootLayout({
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbLink href="#">{parentTitle}</BreadcrumbLink>
+                    <BreadcrumbLink href="#">parentTitle</BreadcrumbLink>
                   </BreadcrumbItem>
                   <BreadcrumbSeparator className="hidden md:block" />
                   <BreadcrumbItem>
-                    <BreadcrumbPage>{title}</BreadcrumbPage>
+                    <BreadcrumbPage>title</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>

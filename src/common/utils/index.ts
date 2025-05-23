@@ -1,6 +1,13 @@
 import { JSEncrypt } from "jsencrypt";
 import dayjs from "dayjs";
 import { ANY_OBJECT } from "@/api/generic";
+import { UserDTO } from "@/api/sys/UserController";
+
+export type WithChildren<D> = D & {
+  children?: WithChildren<D>[];
+  _level?: number;
+  _parent?: string | number;
+};
 
 /**
  * 列表数据转换树形数据
@@ -13,8 +20,8 @@ export function treeDataTranslate<D>(
   data: Array<D>,
   id = "id",
   pid = "parentId",
-): D[] {
-  const res: D[] = [];
+): WithChildren<D>[] {
+  const res: WithChildren<D>[] = [];
   const temp: ANY_OBJECT = {};
   const dataList: ANY_OBJECT[] = data.map((item) => {
     return { ...item } as ANY_OBJECT;
@@ -39,7 +46,7 @@ export function treeDataTranslate<D>(
         d["_parent"] = d[pid];
         temp[d[pid]]["children"].push(d);
       } else {
-        res.push(d as D);
+        res.push(d as WithChildren<D>);
       }
     }
   }
@@ -362,6 +369,19 @@ export function setTokenName(token: string | null | undefined) {
   }
 }
 
+export function getCurrentUserInfo() {
+  const userInfoString = sessionStorage.getItem("currentUser");
+  if (!userInfoString) return null;
+  return JSON.parse(userInfoString) as UserDTO;
+}
+
+export function setCurrentUserInfo(user: UserDTO | null) {
+  if (user == null) {
+    sessionStorage.removeItem("currentUser");
+  } else {
+    sessionStorage.setItem("currentUser", JSON.stringify(user));
+  }
+}
 
 export function traversalTree(
   treeNode: ANY_OBJECT,

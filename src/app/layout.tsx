@@ -3,7 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@ant-design/v5-patch-for-react-19";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
@@ -22,9 +22,12 @@ import {
 import { AudioWaveform, Command, GalleryVerticalEnd } from "lucide-react";
 import { TeamProps } from "@/components/team-switcher";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { useEffect, useState } from "react";
 import Login from "@/app/login/page";
 import { Toaster } from "@/components/ui/sonner";
-import { useMemo } from "react";
+import { toast } from "sonner";
+import { getCurrentUserInfo } from "@/common/utils";
+import { UserDTO } from "@/api/sys/UserController";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,15 +69,45 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<UserDTO>({
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  } as UserDTO);
+
+  useEffect(() => {
+    const currentUserInfo = getCurrentUserInfo();
+    console.log("currentUserInfo", currentUserInfo);
+    if (currentUserInfo) {
+      setUser(currentUserInfo);
+    }
+  }, []);
+
   console.log("pathname", pathname);
 
-  // const router = useRouter();
-  //   // const [title, setTitle] = useState<string>("");
-  //   // const [parentTitle, setParentTitle] = useState<string>("Home");
+  useEffect(() => {
+    console.log("addEventListener", pathname);
+    const handleMessage = (event: MessageEvent) => {
+      // 可选：验证来源
+      // if (event.origin !== 'https://yourdomain.com') return;
+      console.log("收到消息:", event.data);
+      if (event.data?.relogin) {
+        router.push("/login");
+      }
+      // 根据消息内容处理逻辑
+      if (event.data?.type === "error") {
+        // 触发错误提示或其他 UI 反馈
+        toast.warning(event.data.message);
+      }
+    };
 
-  const test = useMemo(() => {
-    console.log("useMemo test");
-    return "test";
+    window.addEventListener("message", handleMessage);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   if (pathname.startsWith("/login")) {
@@ -89,7 +122,7 @@ export default function RootLayout({
   return (
     <BodyElement>
       <SidebarProvider>
-        <AppSidebar teams={teams as TeamProps[]} />
+        <AppSidebar teams={teams as TeamProps[]} user={user} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
@@ -105,7 +138,7 @@ export default function RootLayout({
                   </BreadcrumbItem>
                   <BreadcrumbSeparator className="hidden md:block" />
                   <BreadcrumbItem>
-                    <BreadcrumbPage>{test}</BreadcrumbPage>
+                    <BreadcrumbPage>title</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>

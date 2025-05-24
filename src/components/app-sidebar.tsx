@@ -12,14 +12,17 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import NavUser from "./nav-user";
+import { UserDTO } from "@/api/sys/UserController";
 
 // This is sample data.
 
 export function AppSidebar({
   teams,
+  user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   teams: TeamProps[];
+  user: UserDTO;
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -30,7 +33,7 @@ export function AppSidebar({
         <NavMain />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

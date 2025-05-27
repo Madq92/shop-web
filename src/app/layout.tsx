@@ -72,8 +72,6 @@ export default function RootLayout({
   //   // const [title, setTitle] = useState<string>("");
   //   // const [parentTitle, setParentTitle] = useState<string>("Home");
 
-  // const [navTree, setNavTree] = useState<NavMainProps[]>(navMain);
-
   const test = useMemo(() => {
     console.log("useMemo test");
     return "test";

@@ -3,7 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@ant-design/v5-patch-for-react-19";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
@@ -21,12 +21,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { AudioWaveform, Command, GalleryVerticalEnd } from "lucide-react";
 import { TeamProps } from "@/components/team-switcher";
-import { UserProps } from "@/components/nav-user";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { useEffect } from "react";
 import Login from "@/app/login/page";
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
+import { useMemo } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,12 +35,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const user = {
-  name: "shadcn",
-  email: "m@example.com",
-  avatar: "/avatars/shadcn.jpg",
-};
 
 const teams = [
   {
@@ -74,35 +66,17 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
-  const router = useRouter();
-  // const [title, setTitle] = useState<string>("");
-  // const [parentTitle, setParentTitle] = useState<string>("Home");
-  // const [navTree, setNavTree] = useState<NavMainProps[]>(navMain);
-
   console.log("pathname", pathname);
 
-  useEffect(() => {
-    console.log("addEventListener", pathname);
-    const handleMessage = (event: MessageEvent) => {
-      // 可选：验证来源
-      // if (event.origin !== 'https://yourdomain.com') return;
-      console.log("收到消息:", event.data);
-      if (event.data?.relogin) {
-        router.push("/login");
-      }
-      // 根据消息内容处理逻辑
-      if (event.data?.type === "error") {
-        // 触发错误提示或其他 UI 反馈
-        toast.warning(event.data.message);
-      }
-    };
+  // const router = useRouter();
+  //   // const [title, setTitle] = useState<string>("");
+  //   // const [parentTitle, setParentTitle] = useState<string>("Home");
 
-    window.addEventListener("message", handleMessage);
+  // const [navTree, setNavTree] = useState<NavMainProps[]>(navMain);
 
-    // 清理函数
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
+  const test = useMemo(() => {
+    console.log("useMemo test");
+    return "test";
   }, []);
 
   if (pathname.startsWith("/login")) {
@@ -117,7 +91,7 @@ export default function RootLayout({
   return (
     <BodyElement>
       <SidebarProvider>
-        <AppSidebar teams={teams as TeamProps[]} user={user as UserProps} />
+        <AppSidebar teams={teams as TeamProps[]} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
@@ -133,7 +107,7 @@ export default function RootLayout({
                   </BreadcrumbItem>
                   <BreadcrumbSeparator className="hidden md:block" />
                   <BreadcrumbItem>
-                    <BreadcrumbPage>title</BreadcrumbPage>
+                    <BreadcrumbPage>{test}</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb>

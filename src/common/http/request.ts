@@ -2,6 +2,7 @@ import { AxiosRequestConfig } from "axios";
 import { ANY_OBJECT } from "@/api/generic";
 import axiosInstance from "./axios";
 import { RequestMethods, RequestOption, ResponseDataType } from "./types";
+import { toast } from "sonner";
 
 const globalConfig = {
   requestOption: {
@@ -20,21 +21,14 @@ const globalConfig = {
   } as AxiosRequestConfig,
 };
 
-function showErrorMessage(
-  type: string,
-  message: string,
-  relogin: boolean = false,
-) {
-  if (window.parent) {
-    window.parent.postMessage(
-      {
-        type,
-        message,
-        relogin,
-      },
-      "*",
-    );
-  }
+function showErrorMessage(message: string) {
+  toast.error(message, {
+    duration: 3000,
+    position: "bottom-center",
+    classNames: {
+      toast: "toast-error",
+    },
+  });
 }
 
 // url调用节流Set
@@ -91,19 +85,17 @@ export async function commonRequest<D>(
       if (result.success) {
         return Promise.resolve(result.data);
       } else {
-        // login-form里面自己处理
         if (loginRequest) {
+          // login-form里面自己处理
           return Promise.reject(result);
         }
-        // 如果
-        let relogin = false;
         if (result.errorCode === "UNAUTHORIZED_EXCEPTION") {
-          relogin = true;
+          if (window.location) {
+            window.location.href = "/login";
+          }
         }
         showErrorMessage(
-          "error",
           result.errorMessage ? result.errorMessage : "服务器异常，请稍后重试",
-          relogin,
         );
         // 显示错误信息
         return Promise.reject(result);
@@ -111,7 +103,7 @@ export async function commonRequest<D>(
     } catch (error) {
       console.log("request error:", error);
       // 显示错误信息
-      showErrorMessage("error", "网络异常，请稍后重试");
+      showErrorMessage("网络异常，请稍后重试");
       return Promise.reject({ errorMessage: "网络异常，请稍后重试" });
     }
   }
@@ -308,7 +300,6 @@ export const upload = async (
         } else {
           if (showError)
             showErrorMessage(
-              "error",
               res.data.errorMessage ? res.data.errorMessage : "数据请求失败",
             );
           reject("数据请求失败");
@@ -316,10 +307,7 @@ export const upload = async (
       })
       .catch((e) => {
         if (showError)
-          showErrorMessage(
-            "error",
-            e.errorMessage ? e.errorMessage : "网络请求错误",
-          );
+          showErrorMessage(e.errorMessage ? e.errorMessage : "网络请求错误");
         reject(e);
       });
   });

@@ -2,8 +2,9 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 import {
   getTokenName,
   getTokenValue,
+  setTokenName,
   setTokenValue,
-} from "@/common/utils/index";
+} from "@/common/utils";
 import { serverDefaultCfg } from "@/common/http/config";
 
 // 创建 axios 请求实例
@@ -31,7 +32,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     console.log("axios request error:", error);
-    Promise.reject({ type: "network", errorMessage: "请求配置异常" });
+    Promise.reject({ errorMessage: "请求配置异常" });
   },
 );
 
@@ -41,7 +42,7 @@ axiosInstance.interceptors.response.use(
     const { data, status } = response;
     // 1.401清除本地token
     if (status === 401) {
-      setTokenValue(null);
+      setTokenName(null);
       setTokenValue(null);
     }
 

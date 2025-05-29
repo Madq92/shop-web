@@ -502,7 +502,7 @@ export default function UserPage() {
             </Form.Item>
 
             <Form.Item label="资源">
-              <div className="p-2">
+              <div className="p-2 border-1 rounded-md">
                 <Tree treeData={resourcesTree}></Tree>
               </div>
             </Form.Item>

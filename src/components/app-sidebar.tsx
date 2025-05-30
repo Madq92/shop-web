@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-
-import { NavMain } from "@/components/nav-main";
-import { TeamProps, TeamSwitcher } from "@/components/team-switcher";
+import { memo } from "react";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -12,30 +11,23 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import NavUser from "./nav-user";
-import { UserDTO } from "@/api/sys/UserController";
+import NavMain from "@/components/nav-main";
 
-// This is sample data.
-
-export function AppSidebar({
-  teams,
-  user,
-  ...props
-}: React.ComponentProps<typeof Sidebar> & {
-  teams: TeamProps[];
-  user: UserDTO;
-}) {
+function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={teams} />
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
 }
+
+export default memo(AppSidebar);

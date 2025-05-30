@@ -1,4 +1,6 @@
-import { ChevronRight, type LucideIcon } from "lucide-react";
+"use client";
+
+import { ChevronRight, type LucideIcon, Settings2 } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,8 +15,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { useEffect, useState } from "react";
-import { getCurrentUserInfo, treeDataTranslate } from "@/common/utils";
+import { memo } from "react";
+import { usePathname } from "next/navigation";
 
 export interface NavMainProps {
   title: string;
@@ -24,134 +26,132 @@ export interface NavMainProps {
   items?: NavMainProps[];
 }
 
-// const navMain = [
-//   {
-//     title: "Playground",
-//     url: "#",
-//     icon: SquareTerminal,
-//     isActive: true,
-//     items: [
-//       {
-//         title: "History",
-//         url: "#",
-//       },
-//       {
-//         title: "Starred",
-//         url: "#",
-//       },
-//       {
-//         title: "Settings",
-//         url: "#",
-//       },
-//     ],
-//   },
-//   {
-//     title: "Models",
-//     url: "#",
-//     icon: Bot,
-//     items: [
-//       {
-//         title: "Genesis",
-//         url: "#",
-//       },
-//       {
-//         title: "Explorer",
-//         url: "#",
-//       },
-//       {
-//         title: "Quantum",
-//         url: "#",
-//       },
-//     ],
-//   },
-//   {
-//     title: "Documentation",
-//     url: "#",
-//     icon: BookOpen,
-//     items: [
-//       {
-//         title: "Introduction",
-//         url: "#",
-//       },
-//       {
-//         title: "Get Started",
-//         url: "#",
-//       },
-//       {
-//         title: "Tutorials",
-//         url: "#",
-//       },
-//       {
-//         title: "Changelog",
-//         url: "#",
-//       },
-//     ],
-//   },
-//   {
-//     title: "基础设置",
-//     url: "/sys",
-//     icon: Settings2,
-//     items: [
-//       {
-//         title: "用户管理",
-//         url: "/sys/user",
-//       },
-//       {
-//         title: "角色管理",
-//         url: "/sys/role",
-//       },
-//       {
-//         title: "资源管理",
-//         url: "/sys/resource",
-//       },
-//       {
-//         title: "系统配置",
-//         url: "/sys/config",
-//       },
-//     ],
-//   },
-// ];
+const defaultNavMain = [
+  // {
+  //   title: "Playground",
+  //   url: "#",
+  //   icon: SquareTerminal,
+  //   isActive: true,
+  //   items: [
+  //     {
+  //       title: "History",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Starred",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Settings",
+  //       url: "#",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "Models",
+  //   url: "#",
+  //   icon: Bot,
+  //   items: [
+  //     {
+  //       title: "Genesis",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Explorer",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Quantum",
+  //       url: "#",
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "Documentation",
+  //   url: "#",
+  //   icon: BookOpen,
+  //   items: [
+  //     {
+  //       title: "Introduction",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Get Started",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Tutorials",
+  //       url: "#",
+  //     },
+  //     {
+  //       title: "Changelog",
+  //       url: "#",
+  //     },
+  //   ],
+  // },
+  {
+    title: "基础设置",
+    url: "/sys",
+    icon: Settings2,
+    isActive: true,
+    items: [
+      {
+        title: "用户管理",
+        url: "/sys/user",
+      },
+      {
+        title: "角色管理",
+        url: "/sys/role",
+      },
+      {
+        title: "资源管理",
+        url: "/sys/resource",
+      },
+      {
+        title: "系统配置",
+        url: "/sys/config",
+      },
+    ],
+  },
+];
 
-export function NavMain() {
-  // const pathname = usePathname();
-  const [menuTree, setMenuTree] = useState<NavMainProps[]>();
-
-  useEffect(() => {
-    const userInfo = getCurrentUserInfo();
-    if (null == userInfo) {
-      window.location.href = "/login";
-    }
-    const menuResources = userInfo?.resources?.filter(
-      (item) => item.resourceType === "MENU",
-    );
-    if (null == menuResources) {
-      setMenuTree([]);
-      return;
-    }
-    const menuResourcesTree = treeDataTranslate(
-      menuResources,
-      "resourceId",
-      "parentResourceId",
-    );
-
-    const map = menuResourcesTree.map(
-      (item) =>
-        ({
-          title: item.resourceName,
-          url: item.url || "#",
-          items: item.children?.map((child) => ({
-            title: child.resourceName,
-            url: child.url || "#",
-          })),
-        }) as NavMainProps,
-    );
-    setMenuTree(map);
-  }, []);
-
+function NavMain() {
+  // const user = useCurrentUser();
+  // const menuTree = useMemo(() => {
+  //   if (user.resources == null || user.resources.length === 0) {
+  //     return defaultNavMain;
+  //   }
+  //
+  //   const menuResources = user.resources.filter(
+  //     (item) => item.resourceType === "MENU",
+  //   );
+  //   if (null == menuResources || menuResources.length === 0) {
+  //     return defaultNavMain;
+  //   }
+  //   const menuResourcesTree = treeDataTranslate(
+  //     menuResources,
+  //     "resourceId",
+  //     "parentResourceId",
+  //   );
+  //
+  //   return menuResourcesTree.map(
+  //     (item) =>
+  //       ({
+  //         title: item.resourceName,
+  //         url: item.url || "#",
+  //         items: item.children?.map((child) => ({
+  //           title: child.resourceName,
+  //           url: child.url || "#",
+  //         })),
+  //       }) as NavMainProps,
+  //   );
+  // }, [user]);
+  const pathname = usePathname();
+  console.log("menuTree", pathname);
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {menuTree?.map((item) => (
+        {defaultNavMain?.map((item) => (
           <Collapsible
             key={item.title}
             asChild
@@ -186,3 +186,5 @@ export function NavMain() {
     </SidebarGroup>
   );
 }
+
+export default memo(NavMain);

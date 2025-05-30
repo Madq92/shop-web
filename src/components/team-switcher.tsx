@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsUpDown, Plus } from "lucide-react";
+import {
+  AudioWaveform,
+  ChevronsUpDown,
+  Command,
+  GalleryVerticalEnd,
+  Plus,
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -25,7 +31,25 @@ export interface TeamProps {
   plan: string;
 }
 
-export function TeamSwitcher({ teams }: { teams: TeamProps[] }) {
+const teams = [
+  {
+    name: "Acme Inc",
+    logo: GalleryVerticalEnd,
+    plan: "Enterprise",
+  },
+  {
+    name: "Acme Corp.",
+    logo: AudioWaveform,
+    plan: "Startup",
+  },
+  {
+    name: "Evil Corp.",
+    logo: Command,
+    plan: "Free",
+  },
+];
+
+export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 

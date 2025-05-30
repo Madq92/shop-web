@@ -33,18 +33,18 @@ import {
   setTokenName,
   setTokenValue,
 } from "@/common/utils";
-import React from "react";
-import { UserDTO } from "@/api/sys/UserController";
+import React, { memo } from "react";
 
-export interface UserProps {
-  name: string;
-  email: string;
-  avatar: string;
-}
+const user = {
+  name: "Coby Hathaway",
+  email: "coby@example.com",
+  avatar: "https://avatars.githubusercontent.com/u/46246659?v=4",
+};
 
-export default function NavUser({ user }: { user: UserDTO }) {
+function NavUser() {
   const { isMobile } = useSidebar();
   const router = useRouter();
+  // const user = useCurrentUser();
 
   const handleLogout = async () => {
     await LoginController.logout();
@@ -126,3 +126,5 @@ export default function NavUser({ user }: { user: UserDTO }) {
     </SidebarMenu>
   );
 }
+
+export default memo(NavUser);

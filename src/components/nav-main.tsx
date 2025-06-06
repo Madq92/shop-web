@@ -15,8 +15,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { memo } from "react";
+import * as React from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { getCurrentUserInfo, treeDataTranslate } from "@/common/utils";
 
 export interface NavMainProps {
   title: string;
@@ -116,42 +118,53 @@ const defaultNavMain = [
 ];
 
 function NavMain() {
-  // const user = useCurrentUser();
-  // const menuTree = useMemo(() => {
-  //   if (user.resources == null || user.resources.length === 0) {
-  //     return defaultNavMain;
-  //   }
-  //
-  //   const menuResources = user.resources.filter(
-  //     (item) => item.resourceType === "MENU",
-  //   );
-  //   if (null == menuResources || menuResources.length === 0) {
-  //     return defaultNavMain;
-  //   }
-  //   const menuResourcesTree = treeDataTranslate(
-  //     menuResources,
-  //     "resourceId",
-  //     "parentResourceId",
-  //   );
-  //
-  //   return menuResourcesTree.map(
-  //     (item) =>
-  //       ({
-  //         title: item.resourceName,
-  //         url: item.url || "#",
-  //         items: item.children?.map((child) => ({
-  //           title: child.resourceName,
-  //           url: child.url || "#",
-  //         })),
-  //       }) as NavMainProps,
-  //   );
-  // }, [user]);
+  const [menuData, setMenuData] = useState<NavMainProps[]>([]);
+
+  const getMenuData = useCallback(() => {
+    console.log("useCallback1neibu--> getMenuData");
+    const user = getCurrentUserInfo();
+    if (null == user) {
+      return defaultNavMain;
+    }
+    const menuResources = user.resources.filter(
+      (item) => item.resourceType === "MENU",
+    );
+    if (null == menuResources || menuResources.length === 0) {
+      return defaultNavMain;
+    }
+    const menuResourcesTree = treeDataTranslate(
+      menuResources,
+      "resourceId",
+      "parentResourceId",
+    );
+
+    const result = menuResourcesTree.map(
+      (item) =>
+        ({
+          title: item.resourceName,
+          url: item.url || "#",
+          items: item.children?.map((child) => ({
+            title: child.resourceName,
+            url: child.url || "#",
+          })),
+        }) as NavMainProps,
+    );
+    return result;
+  }, []);
+
+  console.log("useCallback1waibu");
+
+  useEffect(() => {
+    console.log("useCallback1neibu useEffect");
+    setMenuData(getMenuData());
+  }, []);
+
   const pathname = usePathname();
   console.log("menuTree", pathname);
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {defaultNavMain?.map((item) => (
+        {menuData?.map((item) => (
           <Collapsible
             key={item.title}
             asChild

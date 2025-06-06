@@ -11,7 +11,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import NavUser from "./nav-user";
-import NavMain from "@/components/nav-main";
+import NavMain from "./nav-main";
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (

@@ -16,9 +16,10 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import * as React from "react";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getCurrentUserInfo, treeDataTranslate } from "@/common/utils";
+import Link from "next/link";
 
 export interface NavMainProps {
   title: string;
@@ -119,18 +120,18 @@ const defaultNavMain = [
 
 function NavMain() {
   const [menuData, setMenuData] = useState<NavMainProps[]>([]);
-
-  const getMenuData = useCallback(() => {
-    console.log("useCallback1neibu--> getMenuData");
+  useEffect(() => {
     const user = getCurrentUserInfo();
     if (null == user) {
-      return defaultNavMain;
+      setMenuData(defaultNavMain);
+      return;
     }
     const menuResources = user.resources.filter(
       (item) => item.resourceType === "MENU",
     );
     if (null == menuResources || menuResources.length === 0) {
-      return defaultNavMain;
+      setMenuData(defaultNavMain);
+      return;
     }
     const menuResourcesTree = treeDataTranslate(
       menuResources,
@@ -149,18 +150,11 @@ function NavMain() {
           })),
         }) as NavMainProps,
     );
-    return result;
-  }, []);
-
-  console.log("useCallback1waibu");
-
-  useEffect(() => {
-    console.log("useCallback1neibu useEffect");
-    setMenuData(getMenuData());
+    setMenuData(result);
   }, []);
 
   const pathname = usePathname();
-  console.log("menuTree", pathname);
+
   return (
     <SidebarGroup>
       <SidebarMenu>
@@ -168,7 +162,7 @@ function NavMain() {
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            defaultOpen={pathname.includes(item.url)}
             className="group/collapsible"
           >
             <SidebarMenuItem>
@@ -184,9 +178,9 @@ function NavMain() {
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
+                        <Link href={subItem.url}>
                           <span>{subItem.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   ))}

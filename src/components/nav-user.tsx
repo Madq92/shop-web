@@ -29,22 +29,30 @@ import { Button } from "@/components/ui/button";
 import LoginController from "@/api/sys/LoginController";
 import { useRouter } from "next/navigation";
 import {
+  getCurrentUserInfo,
   setCurrentUserInfo,
   setTokenName,
   setTokenValue,
 } from "@/common/utils";
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
+import { UserDTO } from "@/api/sys/UserController";
 
-const user = {
+const defaultUser = {
   name: "Coby Hathaway",
   email: "coby@example.com",
-  avatar: "https://avatars.githubusercontent.com/u/46246659?v=4",
-};
+  avatar: "/avatars/shadcn.jpg",
+} as UserDTO;
 
 function NavUser() {
+  const [user, setUser] = useState<UserDTO>(defaultUser);
   const { isMobile } = useSidebar();
   const router = useRouter();
-  // const user = useCurrentUser();
+  useEffect(() => {
+    const currentUserInfo = getCurrentUserInfo();
+    if (currentUserInfo) {
+      setUser(currentUserInfo);
+    }
+  }, []);
 
   const handleLogout = async () => {
     await LoginController.logout();

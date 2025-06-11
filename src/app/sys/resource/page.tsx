@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Button,
@@ -26,6 +27,7 @@ import ResourceController, {
   ResourceType,
 } from "@/api/sys/ResourceController";
 import { treeDataTranslate } from "@/common/utils";
+import { DynamicIcon, IconName } from "lucide-react/dynamic";
 
 const ResourceTypeTag: React.FC<{ resourceTypeStr: string | undefined }> = ({
   resourceTypeStr,
@@ -50,6 +52,10 @@ export default function ResourcePage() {
   const [currentResource, setCurrentResource] = useState<ResourceDTO>();
   const [resourceType, setResourceType] = useState<string>("MENU");
 
+  function getIconComponent(iconName: IconName) {
+    return React.createElement(DynamicIcon, { name: iconName });
+  }
+
   const columns: TableProps<ResourceDTO>["columns"] = [
     {
       title: "资源名称",
@@ -60,6 +66,13 @@ export default function ResourcePage() {
       title: "资源图标",
       dataIndex: "icon",
       key: "icon",
+      render: (_, resourceDto) => {
+        const iconName = resourceDto.icon as IconName;
+        if (!iconName) {
+          return <></>;
+        }
+        return getIconComponent(iconName);
+      },
     },
     {
       title: "资源类型",

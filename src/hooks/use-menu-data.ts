@@ -80,19 +80,26 @@ export function useMenuData() {
     );
 
     function getIconComponent(iconName: IconName) {
+      if (null == iconName) {
+        return null;
+      }
       return React.createElement(DynamicIcon, { name: iconName });
     }
 
     return menuResourcesTree.map((item) => {
-      const iconName = (item.icon as IconName) || "Circle";
+      const iconName = item.icon as IconName;
       return {
         title: item.resourceName,
         url: item.url || "#",
         icon: () => getIconComponent(iconName),
-        items: item.children?.map((child) => ({
-          title: child.resourceName,
-          url: child.url || "#",
-        })),
+        items: item.children?.map((child) => {
+          const childIconName = child.icon as IconName;
+          return {
+            title: child.resourceName,
+            url: child.url || "#",
+            icon: () => getIconComponent(childIconName),
+          };
+        }),
       } as NavMainProps;
     });
   }, [user]);

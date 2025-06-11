@@ -51,6 +51,7 @@ function NavMain() {
                         isActive={pathname === subItem.url}
                       >
                         <Link href={subItem.url}>
+                          {subItem.icon && <subItem.icon />}
                           <span>{subItem.title}</span>
                         </Link>
                       </SidebarMenuSubButton>

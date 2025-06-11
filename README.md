@@ -7,9 +7,8 @@
 
 已实现基于权限角色的模型（RBAC）基础能力，后续将继续完善货品模块，合作伙伴模块，库存模块，订单模块
 
-![资源定义](/public/demo.png)
-![用户定义](public/demo2.png)
-![用户登录](public/demo3.png)
+![用户定义](/public/demo/img.png)
+![资源定义](/public/demo/img_1.png)
 
 ## Getting Started
 

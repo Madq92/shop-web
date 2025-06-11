@@ -81,7 +81,7 @@ export default function OperLogPage() {
       },
     },
     {
-      title: "消耗时间",
+      title: "消耗时间(ms)",
       dataIndex: "costTime",
       key: "costTime",
     },

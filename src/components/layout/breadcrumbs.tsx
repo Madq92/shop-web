@@ -2,7 +2,6 @@
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -21,12 +20,14 @@ export function Breadcrumbs() {
           <Fragment key={item.title}>
             {index !== items.length - 1 && (
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href={item.link}>{item.title}</BreadcrumbLink>
+                <BreadcrumbPage>{item.title}</BreadcrumbPage>
               </BreadcrumbItem>
             )}
+
             {index < items.length - 1 && (
               <BreadcrumbSeparator className="hidden md:block" />
             )}
+
             {index === items.length - 1 && (
               <BreadcrumbPage>{item.title}</BreadcrumbPage>
             )}

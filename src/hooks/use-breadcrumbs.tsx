@@ -2,46 +2,45 @@
 
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-import { useMenuData } from "@/hooks/use-menu-data";
 
-type BreadcrumbItem = {
-  title: string;
-  link: string;
-};
+// type BreadcrumbItem = {
+//   title: string;
+//   link: string;
+// };
 
 export function useBreadcrumbs() {
   const pathname = usePathname();
-  const menuData = useMenuData();
-  const routeMapping = useMemo(() => {
-    return menuData.reduce<Record<string, BreadcrumbItem[]>>((acc, menu) => {
-      acc[menu.url] = [
-        {
-          title: menu.title,
-          link: menu.url,
-        },
-      ];
-
-      menu.items?.forEach((item) => {
-        acc[item.url] = [
-          {
-            title: menu.title,
-            link: menu.url,
-          },
-          {
-            title: item.title,
-            link: item.url,
-          },
-        ];
-      });
-
-      return acc;
-    }, {});
-  }, [menuData]);
+  // const menuData = useMenuData();
+  // const routeMapping = useMemo(() => {
+  //   return menuData.reduce<Record<string, BreadcrumbItem[]>>((acc, menu) => {
+  //     acc[menu.url] = [
+  //       {
+  //         title: menu.title,
+  //         link: menu.url,
+  //       },
+  //     ];
+  //
+  //     menu.items?.forEach((item) => {
+  //       acc[item.url] = [
+  //         {
+  //           title: menu.title,
+  //           link: menu.url,
+  //         },
+  //         {
+  //           title: item.title,
+  //           link: item.url,
+  //         },
+  //       ];
+  //     });
+  //
+  //     return acc;
+  //   }, {});
+  // }, [menuData]);
 
   return useMemo(() => {
-    if (routeMapping[pathname]) {
-      return routeMapping[pathname];
-    }
+    // if (routeMapping[pathname]) {
+    //   return routeMapping[pathname];
+    // }
 
     // If no exact match, fall back to generating breadcrumbs from the path
     const segments = pathname.split("/").filter(Boolean);
@@ -52,5 +51,5 @@ export function useBreadcrumbs() {
         link: path,
       };
     });
-  }, [pathname, routeMapping]);
+  }, [pathname]);
 }

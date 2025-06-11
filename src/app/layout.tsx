@@ -10,6 +10,7 @@ import Login from "@/app/login/page";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/layout/header";
 import AppSidebar from "@/components/app-sidebar";
+import NoSsr from "@/components/no-ssr";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +25,7 @@ const geistMono = Geist_Mono({
 const BodyElement = ({ children }: { children: React.ReactNode }) => (
   <html lang="en">
     <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      {children}
+      <NoSsr>{children}</NoSsr>
     </body>
   </html>
 );

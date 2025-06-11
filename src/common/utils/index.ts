@@ -370,12 +370,8 @@ export function setTokenName(token: string | null | undefined) {
 }
 
 export function getCurrentUserInfo() {
-  console.log("getCurrentUserInfo", window);
-  if (typeof window === "undefined") {
-    return null;
-  }
   const userInfoString = sessionStorage.getItem("currentUser");
-  if (!userInfoString) return null;
+  if (userInfoString == null) return null;
   return JSON.parse(userInfoString) as UserDTO;
 }
 

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 
 type LocalStorageKey = string;
-type LocalStorageValue = any;
-
+type LocalStorageValue<T = unknown> = T;
 const dispatchStorageEvent = (
   key: LocalStorageKey,
   newValue?: string | null,

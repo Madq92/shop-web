@@ -2,7 +2,7 @@
 
 ## 简介
 
-使用 React,Typescript,Antd,Shadcn
+使用 Next.js,Typescript,Antd,Shadcn
 开发的中后台前端项目，对应的后端项目为 [Shop](https://github.com/Madq92/shop)
 
 已实现基于权限角色的模型（RBAC）基础能力，后续将继续完善货品模块，合作伙伴模块，库存模块，订单模块

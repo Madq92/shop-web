@@ -30,7 +30,6 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     LoginController.login({
@@ -41,6 +40,7 @@ export function LoginForm({
         if (userLoginInfoResp.tokenValue && userLoginInfoResp.tokenName) {
           setTokenValue(userLoginInfoResp.tokenValue);
           setTokenName(userLoginInfoResp.tokenName);
+
           setCurrentUserInfo(userLoginInfoResp.user);
           router.push("/sys/user");
         } else {

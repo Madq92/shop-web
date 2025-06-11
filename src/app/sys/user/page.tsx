@@ -212,6 +212,7 @@ export default function UserPage() {
 
   useEffect(() => {
     doQueryUser(pageNum);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const resourcesTree = useMemo(() => {

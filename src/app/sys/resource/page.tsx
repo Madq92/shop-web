@@ -165,40 +165,38 @@ export default function ResourcePage() {
 
   return (
     <>
-      <div className="mt-4">
-        <Box>
-          <div className="pb-4">
-            <Space>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setCurrentResource(undefined);
-                  setModalVisible(true);
-                  resourceForm.resetFields();
-                  resourceForm.setFieldsValue({
-                    resourceType,
-                  });
-                }}
-              >
-                创建资源
-              </Button>
+      <Box>
+        <div className="pb-4">
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setCurrentResource(undefined);
+                setModalVisible(true);
+                resourceForm.resetFields();
+                resourceForm.setFieldsValue({
+                  resourceType,
+                });
+              }}
+            >
+              创建资源
+            </Button>
 
-              <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
-                刷新
-              </Button>
-            </Space>
-          </div>
+            <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
+              刷新
+            </Button>
+          </Space>
+        </div>
 
-          <Table
-            dataSource={resourcesTree}
-            columns={columns}
-            rowKey={(record) => record.resourceId}
-            loading={loading}
-            pagination={false}
-          />
-        </Box>
-      </div>
+        <Table
+          dataSource={resourcesTree}
+          columns={columns}
+          rowKey={(record) => record.resourceId}
+          loading={loading}
+          pagination={false}
+        />
+      </Box>
 
       {/*====> 弹窗 begin*/}
       <Modal

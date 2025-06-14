@@ -5,11 +5,10 @@ import {
   setTokenName,
   setTokenValue,
 } from "@/common/utils";
-import { serverDefaultCfg } from "@/common/http/config";
 
 // 创建 axios 请求实例
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: serverDefaultCfg.baseURL, // 基础请求地址
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 基础请求地址
   timeout: 50000, // 请求超时设置
   withCredentials: true, // 跨域请求是否需要携带 cookie
   headers: {

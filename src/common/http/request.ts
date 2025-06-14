@@ -24,7 +24,6 @@ const globalConfig = {
 function showErrorMessage(message: string) {
   toast.error(message, {
     duration: 3000,
-    position: "bottom-center",
     classNames: {
       toast: "toast-error",
     },

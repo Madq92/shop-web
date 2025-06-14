@@ -39,8 +39,10 @@ export function useBreadcrumbs() {
   }, [menuData]);
 
   return useMemo(() => {
-    if (routeMapping[pathname]) {
-      return routeMapping[pathname];
+    const path = pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+    const routeMappingElement = routeMapping[path];
+    if (routeMappingElement) {
+      return routeMappingElement;
     }
 
     // If no exact match, fall back to generating breadcrumbs from the path

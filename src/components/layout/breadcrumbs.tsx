@@ -11,8 +11,7 @@ import { Fragment } from "react";
 
 export function Breadcrumbs() {
   const items = useBreadcrumbs();
-  if (items.length === 0) return null;
-
+  if (items == null || items.length === 0) return null;
   return (
     <Breadcrumb>
       <BreadcrumbList>

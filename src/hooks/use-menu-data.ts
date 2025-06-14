@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { Settings2 } from "lucide-react";
 import { getCurrentUserInfo, treeDataTranslate } from "@/common/utils";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
+import { useRouter } from "next/navigation";
 
 export interface NavMainProps {
   title: string;
@@ -63,6 +64,10 @@ const defaultNavMain = [
 
 export function useMenuData() {
   const user = getCurrentUserInfo();
+  const router = useRouter();
+  if (null == user) {
+    router.push("/login");
+  }
   return useMemo<NavMainProps[]>(() => {
     if (null == user) {
       return defaultNavMain;

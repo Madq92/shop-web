@@ -24,6 +24,22 @@ import RoleController, { RoleDTO } from "@/api/sys/RoleController";
 import ResourceController, { ResourceDTO } from "@/api/sys/ResourceController";
 import type { DataNode } from "antd/es/tree";
 
+function getChildren(resources: ResourceDTO[]): string[] {
+  if (!resources || resources.length === 0) return [];
+
+  // 收集所有作为父节点的 resourceId
+  const parentIds = new Set<string>(
+    resources
+      .map((r) => r.parentResourceId)
+      .filter((id) => id !== null && id !== undefined),
+  );
+
+  // 筛选出不是父节点的 resourceId（即叶子节点）
+  return resources
+    .filter((r) => !parentIds.has(r.resourceId))
+    .map((r) => r.resourceId);
+}
+
 export default function RolePage() {
   const [roles, setRoles] = useState<RoleDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -32,7 +48,8 @@ export default function RolePage() {
   const [modalDetailVisible, setModalDetailVisible] = useState<boolean>(false);
   const [currentRole, setCurrentRole] = useState<RoleDTO>();
   const [resourceTree, setResourceTree] = useState<DataNode[]>([]);
-  const [checkedKeyList, setCheckedKeyList] = useState<string[]>([]);
+  const [checkedKeys, setCheckedKeys] = useState<string[]>([]);
+  const [halfCheckedKeys, setHalfCheckedKeys] = useState<string[]>([]);
 
   const columns: TableProps<RoleDTO>["columns"] = [
     {
@@ -60,13 +77,11 @@ export default function RolePage() {
             onClick={async () => {
               const data = await RoleController.detail(roleDto.roleId);
               setCurrentRole(data);
-              const key = data.resources?.map((resource) => {
-                return resource.resourceId;
-              });
               ResourceController.tree().then((data) => {
                 setResourceTree(data);
               });
-              setCheckedKeyList(key);
+              const checkedKeys = getChildren(data.resources);
+              setCheckedKeys(checkedKeys);
               setModalDetailVisible(true);
             }}
           >
@@ -99,7 +114,7 @@ export default function RolePage() {
 
   const handleCreate = async () => {
     setCurrentRole(undefined);
-    setCheckedKeyList([]);
+    setCheckedKeys([]);
     roleForm.resetFields();
 
     ResourceController.tree().then((data) => {
@@ -112,7 +127,8 @@ export default function RolePage() {
   const handleEdit = async (roleDto: RoleDTO) => {
     RoleController.detail(roleDto.roleId).then((data) => {
       setCurrentRole(data);
-      setCheckedKeyList(data.resources.map((resource) => resource.resourceId));
+      const checkedKeys = getChildren(data.resources);
+      setCheckedKeys(checkedKeys);
       roleForm.setFieldsValue(data);
     });
 
@@ -129,7 +145,9 @@ export default function RolePage() {
 
   function handleSubmit() {
     roleForm.validateFields().then(async (roleDto) => {
-      const resources = checkedKeyList?.map((resourceId) => {
+      const allCheckedKeys = [...checkedKeys, ...halfCheckedKeys];
+
+      const resources = allCheckedKeys.map((resourceId) => {
         return {
           resourceId,
         } as ResourceDTO;
@@ -229,9 +247,10 @@ export default function RolePage() {
             <Card type="inner">
               <Tree
                 treeData={resourceTree}
-                checkedKeys={checkedKeyList}
-                onCheck={(checkedKeys) => {
-                  setCheckedKeyList(checkedKeys as string[]);
+                checkedKeys={checkedKeys}
+                onCheck={(checkedKeys, { halfCheckedKeys }) => {
+                  setCheckedKeys(checkedKeys as string[]);
+                  setHalfCheckedKeys(halfCheckedKeys as string[]);
                 }}
                 checkable={true}
               ></Tree>
@@ -279,7 +298,7 @@ export default function RolePage() {
           <Card type="inner" title="角色资源权限">
             <Tree
               treeData={resourceTree}
-              checkedKeys={checkedKeyList}
+              checkedKeys={checkedKeys}
               checkable={true}
             ></Tree>
           </Card>

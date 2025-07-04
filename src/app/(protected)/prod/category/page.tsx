@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
-  Card,
   Col,
   Form,
   Input,
   Modal,
   Row,
+  Select,
   Space,
   Table,
   TableProps,
@@ -25,9 +25,13 @@ import CategoryController, {
   CategoryDTO,
   CategoryQueryReq,
 } from "@/api/prod/CategoryController";
+import { treeDataTranslate } from "@/common/utils";
 
 export default function RolePage() {
   const [categoryList, setCategoryList] = useState<CategoryDTO[]>([]);
+  const [parentCategoryList, setParentCategoryList] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [categoryForm] = Form.useForm<CategoryDTO>();
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -73,6 +77,7 @@ export default function RolePage() {
 
   const doQuery = async () => {
     setLoading(true);
+
     const queryParam = queryForm.getFieldsValue();
     const result = await CategoryController.list(queryParam);
     setCategoryList(result || []);
@@ -93,6 +98,15 @@ export default function RolePage() {
   };
 
   useEffect(() => {
+    CategoryController.list({} as CategoryQueryReq).then((categoryList) => {
+      const parentCategoryList = categoryList
+        .filter((category) => category.parentId == null)
+        .map((category) => ({
+          value: category.categoryId,
+          label: category.name,
+        }));
+      setParentCategoryList(parentCategoryList);
+    });
     doQuery();
   }, []);
 
@@ -110,6 +124,10 @@ export default function RolePage() {
     });
   }
 
+  const categoryTree = useMemo(() => {
+    return treeDataTranslate(categoryList, "categoryId", "parentId");
+  }, [categoryList]);
+
   return (
     <>
       <div className="bg-white mb-4 p-6">
@@ -122,7 +140,7 @@ export default function RolePage() {
             </Col>
             <Col span={6}>
               <Form.Item name="parentId" label="父分类">
-                <Input placeholder="请输入分类名称" />
+                <Select options={parentCategoryList} allowClear />
               </Form.Item>
             </Col>
             <div className="text-left">
@@ -165,11 +183,14 @@ export default function RolePage() {
           </Space>
         </div>
         <Table
-          dataSource={categoryList}
+          dataSource={categoryTree}
           columns={columns}
           rowKey={(record) => record.categoryId}
           loading={loading}
           pagination={false}
+          expandable={{
+            expandedRowKeys: categoryTree.map((item) => item.categoryId),
+          }}
         />
       </Box>
       {/*====> 弹窗 begin*/}
@@ -185,7 +206,7 @@ export default function RolePage() {
       >
         <Form form={categoryForm} layout="vertical" name="deviceForm">
           <Form.Item name="parentId" label="父分类">
-            <Card type="inner">下拉列表</Card>
+            <Select options={parentCategoryList} allowClear />
           </Form.Item>
           <Form.Item
             name="name"

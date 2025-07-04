@@ -84,19 +84,18 @@ export function useMenuData() {
       "parentResourceId",
     );
 
-    function getIconComponent(iconName: IconName) {
-      if (null == iconName) {
+    function getIconComponent(iconName: string) {
+      if (null == iconName || iconName.trim().length === 0) {
         return null;
       }
-      return React.createElement(DynamicIcon, { name: iconName });
+      return React.createElement(DynamicIcon, { name: iconName as IconName });
     }
 
     return menuResourcesTree.map((item) => {
-      const iconName = item.icon as IconName;
       return {
         title: item.resourceName,
         url: item.url || "#",
-        icon: () => getIconComponent(iconName),
+        icon: () => getIconComponent(item.icon),
         items: item.children?.map((child) => {
           const childIconName = child.icon as IconName;
           return {

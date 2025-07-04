@@ -27,7 +27,7 @@ import CategoryController, {
 } from "@/api/prod/CategoryController";
 import { treeDataTranslate } from "@/common/utils";
 
-export default function RolePage() {
+export default function CategoryPage() {
   const [categoryList, setCategoryList] = useState<CategoryDTO[]>([]);
   const [parentCategoryList, setParentCategoryList] = useState<
     { value: string; label: string }[]

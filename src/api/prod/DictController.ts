@@ -39,6 +39,12 @@ export default class DictController extends BaseController {
   }
 }
 
+export enum DictType {
+  UNIT = "单位",
+  SPEC = "规格",
+  LABEL = "标签",
+}
+
 // 数据传输对象
 
 /**

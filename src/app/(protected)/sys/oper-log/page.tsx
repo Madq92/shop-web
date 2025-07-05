@@ -109,27 +109,27 @@ export default function OperLogPage() {
                 <Select options={operLogSuccessOption}></Select>
               </Form.Item>
             </Col>
+            <Col span={6}>
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<SearchOutlined />}
+                  onClick={reloadData}
+                >
+                  查询
+                </Button>
+                <Button
+                  icon={<SyncOutlined />}
+                  onClick={() => {
+                    queryForm.resetFields();
+                  }}
+                >
+                  重置
+                </Button>
+              </Space>
+            </Col>
           </Row>
-          <div className="text-left">
-            <Space>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SearchOutlined />}
-                onClick={reloadData}
-              >
-                查询
-              </Button>
-              <Button
-                icon={<SyncOutlined />}
-                onClick={() => {
-                  queryForm.resetFields();
-                }}
-              >
-                重置
-              </Button>
-            </Space>
-          </div>
         </Form>
       </Box>
 

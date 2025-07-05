@@ -37,6 +37,7 @@ export default function CategoryPage() {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [currentCategory, setCurrentCategory] = useState<CategoryDTO>();
   const [queryForm] = Form.useForm<CategoryQueryReq>();
+  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
 
   const columns: TableProps<CategoryDTO>["columns"] = [
     {
@@ -81,6 +82,13 @@ export default function CategoryPage() {
     const queryParam = queryForm.getFieldsValue();
     const result = await CategoryController.list(queryParam);
     setCategoryList(result || []);
+    if (result && result.length > 0) {
+      setExpandedRowKeys(
+        result
+          .filter((item) => item.parentId == null)
+          .map((item) => item.categoryId),
+      );
+    }
     setLoading(false);
   };
 
@@ -130,7 +138,7 @@ export default function CategoryPage() {
 
   return (
     <>
-      <div className="bg-white mb-4 p-6">
+      <Box className="mb-4">
         <Form form={queryForm} name="advanced_search">
           <Row gutter={24}>
             <Col span={6}>
@@ -143,8 +151,8 @@ export default function CategoryPage() {
                 <Select options={parentCategoryList} allowClear />
               </Form.Item>
             </Col>
-            <div className="text-left">
-              <Space>
+            <Col span={6}>
+              <Space className="text-left">
                 <Button
                   type="primary"
                   htmlType="submit"
@@ -162,26 +170,20 @@ export default function CategoryPage() {
                   重置
                 </Button>
               </Space>
-            </div>
+            </Col>
           </Row>
         </Form>
-      </div>
+      </Box>
       <Box>
-        <div className="pb-4">
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
-              创建分类
-            </Button>
+        <Space className="pb-4">
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            创建分类
+          </Button>
 
-            <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
-              刷新
-            </Button>
-          </Space>
-        </div>
+          <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
+            刷新
+          </Button>
+        </Space>
         <Table
           dataSource={categoryTree}
           columns={columns}
@@ -189,7 +191,11 @@ export default function CategoryPage() {
           loading={loading}
           pagination={false}
           expandable={{
-            expandedRowKeys: categoryTree.map((item) => item.categoryId),
+            expandedRowKeys: expandedRowKeys,
+            expandRowByClick: true,
+            onExpandedRowsChange: (expandedRowKeys) => {
+              setExpandedRowKeys(expandedRowKeys as string[]);
+            },
           }}
         />
       </Box>

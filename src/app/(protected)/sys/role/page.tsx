@@ -190,21 +190,15 @@ export default function RolePage() {
   return (
     <>
       <Box>
-        <div className="pb-4">
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
-              创建角色
-            </Button>
+        <Space className="mb-4">
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            创建角色
+          </Button>
 
-            <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
-              刷新
-            </Button>
-          </Space>
-        </div>
+          <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
+            刷新
+          </Button>
+        </Space>
         <Table
           dataSource={roles}
           columns={columns}
@@ -257,27 +251,25 @@ export default function RolePage() {
             </Card>
           </Form.Item>
 
-          <div className="text-right">
-            <Space>
-              <Button
-                icon={<CloseOutlined />}
-                onClick={() => {
-                  setModalVisible(false);
-                  roleForm.resetFields();
-                }}
-              >
-                取消
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<CheckOutlined />}
-                onClick={handleSubmit}
-              >
-                确认
-              </Button>
-            </Space>
-          </div>
+          <Space>
+            <Button
+              icon={<CloseOutlined />}
+              onClick={() => {
+                setModalVisible(false);
+                roleForm.resetFields();
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<CheckOutlined />}
+              onClick={handleSubmit}
+            >
+              确认
+            </Button>
+          </Space>
         </Form>
       </Modal>
 

@@ -179,28 +179,25 @@ export default function ResourcePage() {
   return (
     <>
       <Box>
-        <div className="pb-4">
-          <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setCurrentResource(undefined);
-                setModalVisible(true);
-                resourceForm.resetFields();
-                resourceForm.setFieldsValue({
-                  resourceType,
-                });
-              }}
-            >
-              创建资源
-            </Button>
-
-            <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
-              刷新
-            </Button>
-          </Space>
-        </div>
+        <Space className="pb-4">
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setCurrentResource(undefined);
+              setModalVisible(true);
+              resourceForm.resetFields();
+              resourceForm.setFieldsValue({
+                resourceType,
+              });
+            }}
+          >
+            创建资源
+          </Button>
+          <Button type="primary" icon={<SyncOutlined />} onClick={doQuery}>
+            刷新
+          </Button>
+        </Space>
 
         <Table
           dataSource={resourcesTree}

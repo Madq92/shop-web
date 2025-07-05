@@ -21,6 +21,8 @@ demo地址: https://shop.oldhorse.tech:1443/
 
 First, run the development server:
 
+需添加配置： NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/ 到 .env.local 文件中
+
 ```bash
 pnpm i
 pnpm dev

@@ -341,58 +341,53 @@ export default function UserPage() {
               </Form.Item>
             </Col>
           </Row>
-          <div className="text-left">
-            <Space>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<SearchOutlined />}
-                onClick={reloadData}
-              >
-                查询
-              </Button>
-              <Button
-                icon={<SyncOutlined />}
-                onClick={() => {
-                  queryForm.resetFields();
-                }}
-              >
-                重置
-              </Button>
-            </Space>
-          </div>
+          <Space>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SearchOutlined />}
+              onClick={reloadData}
+            >
+              查询
+            </Button>
+            <Button
+              icon={<SyncOutlined />}
+              onClick={() => {
+                queryForm.resetFields();
+              }}
+            >
+              重置
+            </Button>
+          </Space>
         </Form>
       </Box>
 
-      <div className="mt-4">
-        <Box>
-          <div className="pb-4">
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setCurrentUser(undefined);
-                setModalVisible(true);
-                userForm.resetFields();
-              }}
-            >
-              创建用户
-            </Button>
-          </div>
-          <Table
-            dataSource={users}
-            columns={columns}
-            rowKey={(record) => record.userId}
-            loading={loading}
-            pagination={{
-              total,
-              pageSize,
-              current: pageNum,
-              onChange: handlePageOnChange,
-            }}
-          />
-        </Box>
-      </div>
+      <Box className="mt-4">
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setCurrentUser(undefined);
+            setModalVisible(true);
+            userForm.resetFields();
+          }}
+          className="mb-4"
+        >
+          创建用户
+        </Button>
+        <Table
+          dataSource={users}
+          columns={columns}
+          rowKey={(record) => record.userId}
+          loading={loading}
+          pagination={{
+            total,
+            pageSize,
+            current: pageNum,
+            onChange: handlePageOnChange,
+          }}
+        />
+      </Box>
 
       {/*====> 弹窗 begin*/}
       <Modal

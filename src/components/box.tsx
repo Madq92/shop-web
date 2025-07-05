@@ -1,5 +1,8 @@
+import { cn } from "@/lib/utils";
+
 export default function Box({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
-  return <div className="bg-white p-6">{children}</div>;
+  className,
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <div className={cn("bg-white p-6", className)}>{children}</div>;
 }

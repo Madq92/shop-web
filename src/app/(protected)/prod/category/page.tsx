@@ -116,6 +116,7 @@ export default function CategoryPage() {
       setParentCategoryList(parentCategoryList);
     });
     doQuery();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSubmit() {

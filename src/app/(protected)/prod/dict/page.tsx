@@ -15,7 +15,7 @@ import {
 } from "antd";
 import Box from "@/components/box";
 import { Microchip, Tags, Weight } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   CheckOutlined,
   CloseOutlined,
@@ -55,10 +55,6 @@ export default function DictPage() {
   const [detailModalVisible, setDetailModalVisible] = useState<boolean>(false);
   const [currentDictDetail, setCurrentDictDetail] = useState<DictDTO>();
   const [dictDetailForm] = Form.useForm<DictDTO>();
-
-  const [tagInputVisible, setTagInputVisible] = useState(false);
-  const [tagInputValue, setTagInputValue] = useState("");
-  const tagInputRef = useRef<string>("");
 
   const doQuery = async (dictType: string) => {
     setLoading(true);

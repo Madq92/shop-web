@@ -124,6 +124,7 @@ export default function SpuPage() {
 
   useEffect(() => {
     doQuery(pageNum);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePageOnChange = (page: number, pageSize: number) => {

@@ -51,7 +51,7 @@ export default function SpuEditPage() {
   // 属性
   const [categoryId, setCategoryId] = useState<string>("");
   const [spuStatus, setSpuStatus] = useState<string>(ProdStatusEnum.ENABLE);
-  const [imgUrlList, setImgUrlList] = useState<string[]>([]);
+  // const [imgUrlList, setImgUrlList] = useState<string[]>([]);
 
   useEffect(() => {
     DictController.list({ type: "UNIT" }).then((dictGroupList) => {

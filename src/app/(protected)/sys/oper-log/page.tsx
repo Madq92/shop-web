@@ -31,6 +31,7 @@ export default function OperLogPage() {
 
   useEffect(() => {
     doQuery(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const reloadData = () => {
     setPageNum(1);

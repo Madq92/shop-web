@@ -106,7 +106,7 @@ export default function CategoryPage() {
   };
 
   useEffect(() => {
-    CategoryController.list({} as CategoryQueryReq).then((categoryList) => {
+    CategoryController.list().then((categoryList) => {
       const parentCategoryList = categoryList
         .filter((category) => category.parentId == null)
         .map((category) => ({

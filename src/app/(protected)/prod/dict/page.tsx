@@ -2,12 +2,10 @@
 
 import {
   Button,
-  Col,
   Form,
   Input,
   Modal,
   Radio,
-  Row,
   Space,
   Table,
   TableProps,
@@ -15,19 +13,17 @@ import {
 } from "antd";
 import Box from "@/components/box";
 import { Microchip, Tags, Weight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
   PlusOutlined,
-  SearchOutlined,
   SyncOutlined,
 } from "@ant-design/icons";
 import DictController, {
   DictDTO,
   DictGroupDTO,
-  DictQueryReq,
   DictType,
 } from "@/api/prod/DictController";
 
@@ -46,7 +42,6 @@ const options = Object.entries(DictType).map(([value, label]) => ({
 
 export default function DictPage() {
   const [dictType, setDictType] = useState<string>("UNIT");
-  const [queryForm] = Form.useForm<DictQueryReq>();
   const [loading, setLoading] = useState<boolean>(false);
   const [dictGroupList, setDictGroupList] = useState<DictGroupDTO[]>();
   const [currentDictGroup, setCurrentDictGroup] = useState<DictGroupDTO>();
@@ -56,11 +51,13 @@ export default function DictPage() {
   const [currentDictDetail, setCurrentDictDetail] = useState<DictDTO>();
   const [dictDetailForm] = Form.useForm<DictDTO>();
 
+  useEffect(() => {
+    doQuery(dictType);
+  }, [dictType]);
+
   const doQuery = async (dictType: string) => {
     setLoading(true);
-    const queryParam = queryForm.getFieldsValue();
-    queryParam.type = dictType;
-    const result = await DictController.list(queryParam);
+    const result = await DictController.list({ type: dictType });
     setDictGroupList(result || []);
     setLoading(false);
   };
@@ -88,6 +85,15 @@ export default function DictPage() {
     setModalVisible(false);
     dictGroupForm.resetFields();
     doQuery(dictType);
+  };
+
+  const handleDetailCreate = async (dictGroup: DictGroupDTO | undefined) => {
+    if (dictGroup) {
+      setCurrentDictGroup(dictGroup);
+      setCurrentDictDetail(undefined);
+      dictDetailForm.resetFields();
+      setDetailModalVisible(true);
+    }
   };
 
   const handleDetailSubmit = async () => {
@@ -171,13 +177,37 @@ export default function DictPage() {
           <Button
             type="link"
             size="small"
-            onClick={async () => {
-              setCurrentDictGroup(dictGroup);
-              setCurrentDictDetail(undefined);
-              setDetailModalVisible(true);
-            }}
+            onClick={() => handleDetailCreate(dictGroup)}
           >
             添加{dictTypeName}明细
+          </Button>
+        </>
+      ),
+    },
+  ];
+
+  const detailColumns: TableProps<DictDTO>["columns"] = [
+    {
+      title: `${dictTypeName}名称`,
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "操作",
+      render: (_, dictDetail) => (
+        <>
+          <Button
+            type="link"
+            size="small"
+            onClick={async () => {
+              await DictController.deleteDetail(
+                dictDetail.dictGroupId,
+                dictDetail.dictId,
+              );
+              doQuery(dictType);
+            }}
+          >
+            删除
           </Button>
         </>
       ),
@@ -195,66 +225,67 @@ export default function DictPage() {
           buttonStyle="solid"
           onChange={(e) => {
             setDictType(e.target.value);
-            doQuery(e.target.value);
           }}
         />
       </Box>
+      {/*数据列表*/}
+      {dictType === "UNIT" ? (
+        <Box>
+          <Space className="pb-4">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() =>
+                handleDetailCreate(dictGroupList && dictGroupList[0])
+              }
+            >
+              创建{dictTypeName}
+            </Button>
 
-      <Box>
-        {/*查询窗口*/}
-        <Form form={queryForm} name="advanced_search">
-          <Row gutter={24}>
-            <Col span={6}>
-              <Form.Item name="name" label={`${dictTypeName}名称`}>
-                <Input placeholder={`请输入${dictTypeName}名称`} />
-              </Form.Item>
-            </Col>
-            <div className="text-left">
-              <Space>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<SearchOutlined />}
-                  onClick={() => doQuery(dictType)}
-                >
-                  查询
-                </Button>
-                <Button
-                  icon={<SyncOutlined />}
-                  onClick={() => {
-                    queryForm.resetFields();
-                  }}
-                >
-                  重置
-                </Button>
-              </Space>
-            </div>
-          </Row>
-        </Form>
+            <Button
+              type="primary"
+              icon={<SyncOutlined />}
+              onClick={() => doQuery(dictType)}
+            >
+              刷新
+            </Button>
+          </Space>
+          <Table
+            dataSource={dictGroupList && dictGroupList[0].dictDetails}
+            columns={detailColumns}
+            rowKey={(record) => record.dictId}
+            loading={loading}
+            pagination={false}
+          />
+        </Box>
+      ) : (
+        <Box>
+          <Space className="pb-4">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+            >
+              创{dictTypeName}组
+            </Button>
 
-        {/*数据列表*/}
-        <Space className="pb-4">
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-            创建
-          </Button>
-
-          <Button
-            type="primary"
-            icon={<SyncOutlined />}
-            onClick={() => doQuery(dictType)}
-          >
-            刷新
-          </Button>
-        </Space>
-        <Table
-          dataSource={dictGroupList}
-          columns={columns}
-          rowKey={(record) => record.dictGroupId}
-          loading={loading}
-          pagination={false}
-        />
-      </Box>
-
+            <Button
+              type="primary"
+              icon={<SyncOutlined />}
+              onClick={() => doQuery(dictType)}
+            >
+              刷新
+            </Button>
+          </Space>
+          <Table
+            dataSource={dictGroupList}
+            columns={columns}
+            rowKey={(record) => record.dictGroupId}
+            loading={loading}
+            pagination={false}
+          />
+        </Box>
+      )}
       {/*====> 弹窗 begin*/}
       {/*字典组弹窗*/}
       <Modal
@@ -301,7 +332,6 @@ export default function DictPage() {
           </div>
         </Form>
       </Modal>
-
       {/*字典详情弹窗*/}
       <Modal
         title={

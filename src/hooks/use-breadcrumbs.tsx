@@ -14,6 +14,7 @@ export function useBreadcrumbs() {
   const menuData = useMenuData();
   const routeMapping = useMemo(() => {
     return menuData.reduce<Record<string, BreadcrumbItem[]>>((acc, menu) => {
+      // 第一层
       acc[menu.url] = [
         {
           title: menu.title,
@@ -21,6 +22,7 @@ export function useBreadcrumbs() {
         },
       ];
 
+      // 第二层
       menu.items?.forEach((item) => {
         acc[item.url] = [
           {
@@ -32,6 +34,24 @@ export function useBreadcrumbs() {
             link: item.url,
           },
         ];
+
+        // 第三层
+        item.items?.forEach((item3) => {
+          acc[item3.url] = [
+            {
+              title: menu.title,
+              link: menu.url,
+            },
+            {
+              title: item.title,
+              link: item.url,
+            },
+            {
+              title: item3.title,
+              link: item3.url,
+            },
+          ];
+        });
       });
 
       return acc;

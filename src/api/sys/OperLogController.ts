@@ -3,7 +3,7 @@ import { PageReq } from "@/api/sys/UserController";
 import { PageDataType } from "@/common/http/types";
 
 export default class OperLogController extends BaseController {
-  static page(req: OperLogPageReq) {
+  static page(req?: OperLogPageReq) {
     return super.GET<PageDataType<OperLogDTO>>("/oper-log", req);
   }
 

@@ -1,7 +1,7 @@
 import { BaseController } from "@/api/BaseController";
 
 export default class ConfigController extends BaseController {
-  static list(req: ConfigQueryReq) {
+  static list(req?: ConfigQueryReq) {
     return super.GET<ConfigDTO[]>("/config", req);
   }
 

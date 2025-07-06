@@ -102,6 +102,14 @@ export function useMenuData() {
             title: child.resourceName,
             url: child.url || "#",
             icon: () => getIconComponent(childIconName),
+            items: child.children?.map((grandchild) => {
+              const grandchildIconName = grandchild.icon as IconName;
+              return {
+                title: grandchild.resourceName,
+                url: grandchild.url || "#",
+                icon: () => getIconComponent(grandchildIconName),
+              };
+            }),
           };
         }),
       } as NavMainProps;

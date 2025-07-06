@@ -1,7 +1,7 @@
 import { BaseController } from "@/api/BaseController";
 
 export default class CategoryController extends BaseController {
-  static list(req: CategoryQueryReq) {
+  static list(req?: CategoryQueryReq) {
     return super.GET<CategoryDTO[]>("/category", req);
   }
 

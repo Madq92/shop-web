@@ -64,7 +64,7 @@ export type DictGroupDTO = {
   /**
    * 字典类型
    */
-  type: string;
+  type?: string;
 
   /**
    * 子字典列表
@@ -95,6 +95,8 @@ export type DictDTO = {
    * 字典类型
    */
   type: string;
+
+  checked?: boolean;
 };
 
 /**

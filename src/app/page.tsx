@@ -1,35 +1,112 @@
 "use client";
 // import { useRouter } from "next/navigation";
 
-import { Button, Form, Select, Space, Tag } from "antd";
+import { Button, Form, Select, Space, Table } from "antd";
 import React, { useEffect, useState } from "react";
-import DictController, { DictGroupDTO } from "@/api/prod/DictController";
+import DictController, {
+  DictDTO,
+  DictGroupDTO,
+} from "@/api/prod/DictController";
+import Link from "next/link";
+
+type SkuProp = {
+  key: string;
+  price?: number;
+  stock?: number;
+  specs?: DictDTO[];
+};
 
 export default function HomePage() {
   // const router = useRouter();
   // router.push("/sys/user");
   const [dictGroupList, setDictGroupList] = useState<DictGroupDTO[]>([]);
-  // const [isShowDetail, setIsShowDetail] = useState(true);
 
   const [allDictGroupList, setAllDictGroupList] = useState<DictGroupDTO[]>([]);
 
-  // setIsShowDetail(true);
+  const [skuSpecList, setSkuSpecList] = useState<SkuProp[]>([]);
 
+  // 获取所有字典组
   useEffect(() => {
     DictController.list({ type: "SPEC" }).then((dictGroupList) => {
       setAllDictGroupList(dictGroupList);
     });
   }, []);
 
+  // 计算可能的sku
+  useEffect(() => {
+    const selectedDetails = dictGroupList
+      .map((group) => group.dictDetails.filter((detail) => detail.checked))
+      .filter((details) => details.length > 0);
+
+    if (selectedDetails.length === 0) {
+      setSkuSpecList([]);
+      return;
+    }
+
+    // 计算笛卡尔积
+    const cartesian = selectedDetails.reduce<DictDTO[][]>(
+      (acc, curr) => curr.flatMap((item) => acc.map((prev) => [...prev, item])),
+      [[]],
+    );
+
+    // 转换为 { spec_0: xxx, spec_1: xxx, key: 'sku-0' } 形式
+    const formattedList = cartesian.map((combination, index) => {
+      const skuItem = combination.reduce<DictDTO[]>((acc, item) => {
+        return [...acc, item];
+      }, []);
+
+      return {
+        key: `sku-${index}`,
+        specs: skuItem,
+        price: 0, // 可选字段
+        stock: 0,
+      } as SkuProp;
+    });
+
+    setSkuSpecList(formattedList);
+  }, [dictGroupList]);
+
+  const columns = React.useMemo(() => {
+    if (dictGroupList.length === 0 || !skuSpecList.length) return [];
+
+    const col = dictGroupList.map((group, index) => ({
+      title: group.name,
+      dataIndex: `spec_${index}`,
+      key: `spec_${index}`,
+      render: (i: number, record: SkuProp) => {
+        console.log("render title", i, record);
+        const spec = record!.specs![index];
+        return spec?.name ?? "-";
+      },
+    }));
+    col.push({
+      title: "价格",
+      dataIndex: "price",
+      key: "price_key",
+      render: (i: number, record: SkuProp) => {
+        console.log("render price", i, record);
+        return record.price + "";
+      },
+    });
+
+    col.push({
+      title: "库存",
+      dataIndex: "stock",
+      key: "stock_key",
+      render: (i: number, record: SkuProp) => {
+        console.log("render stock", i, record);
+        return record.stock + "";
+      },
+    });
+    return col;
+  }, [dictGroupList, skuSpecList]);
+
   const property = {
     add(dictGroup: DictGroupDTO) {
       setDictGroupList((prev) => [...prev, dictGroup]);
     },
-    remove(groupId: string) {
-      setDictGroupList((prev) => {
-        const ret = [...prev];
-        return ret.filter((item) => item.dictGroupId !== groupId);
-      });
+    remove(index: number) {
+      setDictGroupList((prev) => prev.filter((_, i) => i !== index));
     },
     change(i: number, dictGroupId: string) {
       const dictGroup = allDictGroupList.find(
@@ -37,38 +114,38 @@ export default function HomePage() {
       );
       if (dictGroup) {
         setDictGroupList((prev) => {
-          const ret = [...prev];
-          ret[i] = dictGroup;
-          return ret;
+          // 检查是否已经存在该 dictGroup
+          const exists = prev.some(
+            (group) => group.dictGroupId === dictGroup.dictGroupId,
+          );
+
+          if (exists) {
+            return prev; // 已存在，不更新
+          }
+
+          const updatedList = [...prev];
+          updatedList[i] = dictGroup;
+          return updatedList;
         });
       }
     },
-    onAddDetail(groupId: string, dictId: string) {
+    onChangeDetail(i: number, dictIds: string[]) {
       setDictGroupList((prev) => {
-        const ret = [...prev];
-        const dg = ret.find((item) => item.dictGroupId === groupId);
-        if (!dg) {
-          return ret;
+        const updatedList = [...prev];
+
+        if (i >= 0 && i < updatedList.length) {
+          const currentGroup = { ...updatedList[i] };
+
+          // 更新 dictDetails 中每个项的 checked 状态
+          currentGroup.dictDetails = currentGroup.dictDetails.map((detail) => ({
+            ...detail,
+            checked: dictIds.includes(detail.dictId),
+          }));
+
+          updatedList[i] = currentGroup;
         }
-        const dd = dg.dictDetails.find((item) => item.dictId === dictId);
-        if (dd) {
-          dd.checked = true;
-        }
-        return ret;
-      });
-    },
-    onRemoveDetail(groupId: string, dictId: string) {
-      setDictGroupList((prev) => {
-        const ret = [...prev];
-        const dg = ret.find((item) => item.dictGroupId === groupId);
-        if (!dg) {
-          return ret;
-        }
-        const dd = dg.dictDetails.find((item) => item.dictId === dictId);
-        if (dd) {
-          dd.checked = false;
-        }
-        return ret;
+
+        return updatedList;
       });
     },
   };
@@ -80,56 +157,48 @@ export default function HomePage() {
         <div className="bg-muted/50 aspect-video rounded-xl" />
         <div className="bg-muted/50 aspect-video rounded-xl" />
       </div>
+      <Link href={"/sys/user"}>home</Link>
       <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
       <div className="w-full">
         <Form>
           <Form.Item label="商品规格">
             <Space direction="vertical">
               {dictGroupList.map((dictGroup, i) => (
-                <Space key={dictGroup.dictGroupId}>
+                <Space key={i}>
                   <Select
                     placeholder="规格名"
                     style={{ width: 200 }}
                     options={allDictGroupList.map((item) => {
                       return { value: item.dictGroupId, label: item.name };
                     })}
+                    value={dictGroup.dictGroupId}
                     onChange={(dictGroupId: string) =>
                       property.change(i, dictGroupId)
                     }
                   />
-                  {dictGroup.dictDetails
-                    .filter((item) => item.checked)
-                    .map((dictDetail) => (
-                      <Tag
-                        key={dictDetail.dictId}
-                        bordered={false}
-                        closable
-                        onClose={() =>
-                          property.onRemoveDetail(
-                            dictGroup.dictGroupId,
-                            dictDetail.dictId,
-                          )
-                        }
-                      ></Tag>
-                    ))}
-
-                  {/*<Select*/}
-                  {/*  mode="tags"*/}
-                  {/*  style={{ width: 400 }}*/}
-                  {/*  placeholder="添加规格属性"*/}
-                  {/*  value={dictGroup.dictDetails}*/}
-                  {/*  onChange={(v) => property.onChangeValues(i, v)}*/}
-                  {/*>*/}
-                  {/*  {prop?.values?.map((value) => (*/}
-                  {/*    <Option key={value} value={value}>*/}
-                  {/*      {value}*/}
-                  {/*    </Option>*/}
-                  {/*  ))}*/}
-                  {/*</Select>*/}
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: 400 }}
+                    placeholder="选择规格属性"
+                    onChange={(dictIds: string[]) => {
+                      property.onChangeDetail(i, dictIds);
+                    }}
+                    value={dictGroup.dictDetails
+                      .filter((detail) => detail.checked)
+                      .map((detail) => detail.dictId)}
+                    options={dictGroup.dictDetails.map((detail) => {
+                      return { label: detail.name, value: detail.dictId };
+                    })}
+                  />
                   <Button
                     type="link"
                     danger
-                    onClick={() => property.remove(dictGroup.dictGroupId)}
+                    onClick={(e) => {
+                      console.log("onClick", e);
+                      console.log("remove", dictGroup);
+                      property.remove(i);
+                    }}
                   >
                     删除
                   </Button>
@@ -153,18 +222,15 @@ export default function HomePage() {
             </Space>
           </Form.Item>
         </Form>
-        {/*{isShowDetail ? (*/}
-        {/*  <Form.Item label="规格明细" wrapperCol={{ span: 16 }}>*/}
-        {/*    <Table*/}
-        {/*      pagination={false}*/}
-        {/*      size="small"*/}
-        {/*      columns={columns}*/}
-        {/*      dataSource={rows}*/}
-        {/*      bordered*/}
-        {/*      // footer={() => 'Footer'}*/}
-        {/*    />*/}
-        {/*  </Form.Item>*/}
-        {/*) : null}*/}
+        <Form.Item label="Sku明细" wrapperCol={{ span: 16 }}>
+          <Table
+            pagination={false}
+            size="small"
+            columns={columns}
+            dataSource={skuSpecList}
+            bordered
+          />
+        </Form.Item>
       </div>
     </div>
   );

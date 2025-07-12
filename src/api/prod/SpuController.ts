@@ -1,7 +1,6 @@
 import { BaseController } from "@/api/BaseController";
 import { PageDataType } from "@/common/http/types";
-import { DictGroupDTO } from "./DictController";
-import { CategoryDTO } from "@/api/prod/CategoryController";
+import { DictDTO } from "./DictController";
 import { PageReq } from "@/api/sys/UserController";
 
 export default class SpuController extends BaseController {
@@ -57,23 +56,23 @@ export enum YesOrNoEnum {
 }
 
 export enum ProdStatusEnum {
-  ENABLE = "启用",
-  DISABLE = "停用",
+  ENABLE = "ENABLE",
+  DISABLE = "DISABLE",
 }
 
 export type SkuDTO = {
-  skuId: string;
-  spuId: string;
-  code: string;
-  sellPrice: number | null;
-  sellPrice1: number | null;
-  sellPrice2: number | null;
-  sellPrice3: number | null;
-  imgUrl: string | null;
-  weightFlag: YesOrNoEnum;
-  defaultWeight: number | null;
-  status: ProdStatusEnum;
-  specs: DictGroupDTO[];
+  skuId?: string;
+  spuId?: string;
+  code?: string;
+  sellPrice?: number;
+  sellPrice1?: number;
+  sellPrice2?: number;
+  sellPrice3?: number;
+  imgUrl?: string;
+  weightFlag?: string;
+  defaultWeight?: number;
+  status?: string;
+  specs?: DictDTO[];
 };
 
 export type SpuDTO = {
@@ -92,7 +91,6 @@ export type SpuDTO = {
   spuDesc: string;
   sort: number;
   status: string;
-  category: CategoryDTO;
   skus: SkuDTO[];
-  props: DictGroupDTO[];
+  props: DictDTO[];
 };

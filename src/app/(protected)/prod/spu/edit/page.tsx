@@ -14,7 +14,7 @@ import {
   Typography,
   Upload,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Box from "@/components/box";
 import DictController, {
   DictDTO,
@@ -31,11 +31,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const { TextArea } = Input;
 
-type SkuProp = {
-  key: number;
-  price?: number;
+type SkuProp = SkuDTO & {
+  key: number | string;
   stock?: number;
-  specs?: DictDTO[];
 };
 
 export default function SpuEditPage() {
@@ -48,30 +46,21 @@ export default function SpuEditPage() {
   const [unitList, setUnitList] = useState<DictDTO[]>([]);
   const [categoryList, setCategoryList] = useState<CategoryDTO[]>([]);
 
-  // From表单外属性
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [spuStatus, setSpuStatus] = useState<string>(ProdStatusEnum.ENABLE);
-  // const [imgUrlList, setImgUrlList] = useState<string[]>([]);
-
   // sku属性，计算属性
   const [dictGroupList, setDictGroupList] = useState<DictGroupDTO[]>([]);
   const [allDictGroupList, setAllDictGroupList] = useState<DictGroupDTO[]>([]);
-  const [skuSpecList, setSkuSpecList] = useState<SkuProp[]>([]);
   const [columns, setColumns] = useState<TableProps<SkuProp>["columns"]>();
+  const [skuSpecList, setSkuSpecList] = useState<SkuProp[]>([]);
 
   // 表单
-  const [spuForm] = Form.useForm<SpuDTO>();
-  // 初始化单位、规格、分类
+  const [spuForm] = Form.useForm<
+    { categoryIdList: string[]; spuStatusChecked: boolean } & SpuDTO
+  >();
+  // 初始化单位、规格、分类、spu、sku
   useEffect(() => {
     DictController.list({ type: "UNIT" }).then((dictGroupList) => {
       if (dictGroupList) {
         setUnitList(dictGroupList[0].dictDetails);
-      }
-    });
-
-    DictController.list({ type: "SPEC" }).then((dictGroupList) => {
-      if (dictGroupList) {
-        setAllDictGroupList(dictGroupList);
       }
     });
 
@@ -81,16 +70,60 @@ export default function SpuEditPage() {
       }
     });
 
+    DictController.list({ type: "SPEC" }).then((dictGroupList) => {
+      if (dictGroupList) {
+        setAllDictGroupList(dictGroupList);
+      }
+    });
+
     if (spuId) {
       SpuController.detail(spuId as string).then((res) => {
         setCurrentSpu(res);
-        spuForm.setFieldsValue(res);
+        spuForm.setFieldsValue({
+          categoryIdList: [res.parentCategoryId, res.categoryId],
+          spuStatusChecked: res.status === ProdStatusEnum.ENABLE,
+          ...res,
+        });
+        const skuList = res.skus.map((sku) => {
+          return { stock: 0, key: sku.skuId, ...sku } as SkuProp;
+        });
+        setSkuSpecList(skuList);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 编辑的时候初始化商品规格
+  useEffect(() => {
+    if (currentSpu && allDictGroupList) {
+      const distGroupIds = currentSpu.skus
+        .flatMap((sku) => sku.specs)
+        .map((spec) => spec?.dictGroupId);
+
+      const distIds = currentSpu.skus
+        .flatMap((sku) => sku.specs)
+        .map((spec) => spec?.dictId);
+
+      const dictGroupDTOS = allDictGroupList.filter((group) =>
+        distGroupIds.includes(group.dictGroupId),
+      );
+      dictGroupDTOS.forEach((group) => {
+        group.dictDetails.forEach((detail) => {
+          if (distIds.includes(detail.dictId)) {
+            detail.checked = true;
+          }
+        });
+      });
+      setDictGroupList(dictGroupDTOS);
+    }
+  }, [allDictGroupList, currentSpu]);
 
   // 计算可能的sku
   useEffect(() => {
+    // 转换 编辑不计算sku
+    if (spuId) {
+      return;
+    }
     const selectedDetails = dictGroupList
       .map((group) => group.dictDetails.filter((detail) => detail.checked))
       .filter((details) => details.length > 0);
@@ -106,7 +139,6 @@ export default function SpuEditPage() {
       [[]],
     );
 
-    // 转换
     const formattedList = cartesian.map((combination, index) => {
       const skuItem = combination.reduce<DictDTO[]>((acc, item) => {
         return [...acc, item];
@@ -115,10 +147,15 @@ export default function SpuEditPage() {
       return {
         key: index,
         specs: skuItem,
+        status: ProdStatusEnum.ENABLE,
       } as SkuProp;
     });
     setSkuSpecList(formattedList);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dictGroupList]);
 
+  // 计算sku表头
+  useEffect(() => {
     if (dictGroupList.length === 0 || !skuSpecList.length) {
       setColumns([]);
     } else {
@@ -132,41 +169,77 @@ export default function SpuEditPage() {
           return <>{spec?.name ?? "-"}</>;
         },
       }));
-      col.push({
-        title: "价格",
-        dataIndex: "price",
-        key: 100,
-        width: 200,
-        render: (_: unknown, record: SkuProp) => {
-          return (
-            <>
-              <Input
-                type="number"
-                step="0.1"
-                prefix="￥"
-                suffix="元"
-                required
-                value={Number(record.price)}
-                onChange={(e) =>
-                  setSkuSpecList((prev) => {
-                    return prev.map((item) =>
-                      item.key === record.key
-                        ? ({
-                            ...item,
-                            price: Number(e.target.value),
-                          } as SkuProp)
-                        : item,
-                    );
-                  })
-                }
-              />
-            </>
-          );
-        },
-      });
+      col.push(priceColumn);
+      col.push(statusColumn);
       setColumns(col);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dictGroupList]);
+
+  const priceColumn = {
+    title: "价格",
+    dataIndex: "price",
+    key: 100,
+    width: 200,
+    render: (_: unknown, record: SkuProp) => {
+      return (
+        <>
+          <Input
+            type="number"
+            step="0.1"
+            prefix="￥"
+            suffix="元"
+            required
+            value={Number(record.sellPrice)}
+            onChange={(e) =>
+              setSkuSpecList((prev) => {
+                return prev.map((item) =>
+                  item.key === record.key
+                    ? ({
+                        ...item,
+                        sellPrice: Number(e.target.value),
+                      } as SkuProp)
+                    : item,
+                );
+              })
+            }
+          />
+        </>
+      );
+    },
+  };
+
+  const statusColumn = {
+    title: "状态",
+    dataIndex: "status",
+    key: 200,
+    width: 80,
+    render: (_: unknown, record: SkuProp) => {
+      return (
+        <>
+          <Switch
+            checkedChildren="启用"
+            unCheckedChildren="停用"
+            value={record.status === ProdStatusEnum.ENABLE}
+            onChange={(checked) => {
+              setSkuSpecList((prev) => {
+                return prev.map((item) =>
+                  item.key === record.key
+                    ? ({
+                        ...item,
+                        status: checked
+                          ? ProdStatusEnum.ENABLE
+                          : ProdStatusEnum.DISABLE,
+                      } as SkuProp)
+                    : item,
+                );
+              });
+            }}
+          />
+        </>
+      );
+    },
+  };
 
   const property = {
     add(dictGroup: DictGroupDTO) {
@@ -222,49 +295,41 @@ export default function SpuEditPage() {
     label: dict.name,
   }));
 
-  const categoryCascaderOptions = treeDataTranslate(
-    categoryList.map((category) => ({
-      value: category.categoryId,
-      label: category.name,
-      parent: category.parentId,
-    })),
-    "value",
-    "parent",
-  );
+  const categoryCascaderOptions = useMemo(() => {
+    if (!categoryList.length) return [];
+    return treeDataTranslate(
+      categoryList.map((category) => ({
+        value: category.categoryId,
+        label: category.name,
+        parent: category.parentId,
+      })),
+      "value",
+      "parent",
+    );
+  }, [categoryList]);
 
   const handleSubmit = () => {
-    spuForm.validateFields().then(async (spuDTO) => {
-      const statusKey = (
-        Object.keys(ProdStatusEnum) as Array<keyof typeof ProdStatusEnum>
-      ).find((key) => ProdStatusEnum[key] === spuStatus);
-      const spu: SpuDTO = {
-        ...spuDTO,
-        status: statusKey as string,
-        categoryId: categoryId,
-        skus: [
-          {
-            sellPrice: 100,
-            sellPrice1: 200,
-            sellPrice2: 300,
-            sellPrice3: 400,
-            specs: [
-              {
-                dictGroupId: "123",
-                dictDetails: [{ dictId: "1233" } as DictDTO],
-              } as DictGroupDTO,
-            ],
-          } as SkuDTO,
-        ],
-      };
-      if (currentSpu) {
-        // 编辑
-        await SpuController.edit(currentSpu!.spuId, spu);
-      } else {
-        // 创建
-        await SpuController.create(spu);
-      }
-      router.back();
-    });
+    spuForm
+      .validateFields()
+      .then(async ({ categoryIdList, spuStatusChecked, ...spuDTO }) => {
+        const status = spuStatusChecked
+          ? ProdStatusEnum.ENABLE
+          : ProdStatusEnum.DISABLE;
+        const spu: SpuDTO = {
+          ...spuDTO,
+          status: status,
+          categoryId: categoryIdList[1],
+          skus: skuSpecList,
+        };
+        if (currentSpu) {
+          // 编辑
+          await SpuController.edit(currentSpu!.spuId, spu);
+        } else {
+          // 创建
+          await SpuController.create(spu);
+        }
+        router.back();
+      });
   };
 
   return (
@@ -274,12 +339,8 @@ export default function SpuEditPage() {
         <Form.Item
           labelAlign="right"
           label="分类"
-          name={"categoryId"}
+          name="categoryIdList"
           rules={[{ required: true, message: `请选择分类` }]}
-          getValueFromEvent={(categoryIdList: string[]) => {
-            setCategoryId(categoryIdList[categoryIdList.length - 1]);
-            return categoryIdList;
-          }}
         >
           <Cascader options={categoryCascaderOptions} expandTrigger="hover" />
         </Form.Item>
@@ -310,84 +371,77 @@ export default function SpuEditPage() {
         <Form.Item label="排序" name="sort" labelAlign="right">
           <Input placeholder="请输入商品排序" type={"number"} />
         </Form.Item>
-        <Form.Item
-          label="状态"
-          name={"status"}
-          valuePropName="checked"
-          getValueFromEvent={(checked: boolean) => {
-            setSpuStatus(
-              checked ? ProdStatusEnum.ENABLE : ProdStatusEnum.DISABLE,
-            );
-          }}
-        >
+        <Form.Item label="状态" name={"spuStatusChecked"}>
           <Switch
             checkedChildren="启用"
             unCheckedChildren="停用"
-            defaultChecked
+            defaultChecked={false}
           />
         </Form.Item>
 
         {/*------------------ 规格 begin ------------------*/}
         <div className={"text-sm font-medium mb-6 "}>价格信息</div>
 
-        <Form.Item label="商品规格">
-          <Space direction="vertical">
-            {dictGroupList.map((dictGroup, i) => (
-              <Space key={i}>
-                <Select
-                  placeholder="规格名"
-                  style={{ minWidth: 200 }}
-                  options={allDictGroupList.map((item) => {
-                    return { value: item.dictGroupId, label: item.name };
-                  })}
-                  value={dictGroup.dictGroupId}
-                  onChange={(dictGroupId: string) =>
-                    property.change(i, dictGroupId)
-                  }
-                />
-                <Select
-                  mode="multiple"
-                  allowClear
-                  style={{ minWidth: 400 }}
-                  placeholder="选择规格属性"
-                  onChange={(dictIds: string[]) => {
-                    property.onChangeDetail(i, dictIds);
-                  }}
-                  value={dictGroup.dictDetails
-                    .filter((detail) => detail.checked)
-                    .map((detail) => detail.dictId)}
-                  options={dictGroup.dictDetails.map((detail) => {
-                    return { label: detail.name, value: detail.dictId };
-                  })}
-                />
+        {!spuId && (
+          <Form.Item label="商品规格">
+            <Space direction="vertical">
+              {dictGroupList.map((dictGroup, i) => (
+                <Space key={i}>
+                  <Select
+                    placeholder="规格名"
+                    style={{ minWidth: 200 }}
+                    options={allDictGroupList.map((item) => {
+                      return { value: item.dictGroupId, label: item.name };
+                    })}
+                    value={dictGroup.dictGroupId}
+                    onChange={(dictGroupId: string) =>
+                      property.change(i, dictGroupId)
+                    }
+                  />
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ minWidth: 400 }}
+                    placeholder="选择规格属性"
+                    onChange={(dictIds: string[]) => {
+                      property.onChangeDetail(i, dictIds);
+                    }}
+                    value={dictGroup.dictDetails
+                      .filter((detail) => detail.checked)
+                      .map((detail) => detail.dictId)}
+                    options={dictGroup.dictDetails.map((detail) => {
+                      return { label: detail.name, value: detail.dictId };
+                    })}
+                  />
+                  <Button
+                    type="link"
+                    danger
+                    onClick={() => {
+                      property.remove(i);
+                    }}
+                  >
+                    删除
+                  </Button>
+                </Space>
+              ))}
+              {dictGroupList.length < 3 && (
                 <Button
-                  type="link"
-                  danger
+                  type="dashed"
+                  size={"small"}
                   onClick={() => {
-                    property.remove(i);
+                    property.add({
+                      dictGroupId: "",
+                      name: "",
+                      dictDetails: [],
+                    } as DictGroupDTO);
                   }}
                 >
-                  删除
+                  添加规格
                 </Button>
-              </Space>
-            ))}
-            {dictGroupList.length < 3 && (
-              <Button
-                type="dashed"
-                size={"small"}
-                onClick={() => {
-                  property.add({
-                    dictGroupId: "",
-                    name: "",
-                    dictDetails: [],
-                  } as DictGroupDTO);
-                }}
-              >
-                添加规格
-              </Button>
-            )}
-          </Space>
-        </Form.Item>
+              )}
+            </Space>
+          </Form.Item>
+        )}
 
         <Form.Item label="规格明细" wrapperCol={{ span: 16 }}>
           <Table

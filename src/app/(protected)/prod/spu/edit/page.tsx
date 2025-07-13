@@ -21,13 +21,16 @@ import DictController, {
   DictGroupDTO,
 } from "@/api/prod/DictController";
 import CategoryController, { CategoryDTO } from "@/api/prod/CategoryController";
-import { treeDataTranslate } from "@/common/utils";
+import { getUUID, treeDataTranslate } from "@/common/utils";
 import SpuController, {
   ProdStatusEnum,
   SkuDTO,
   SpuDTO,
 } from "@/api/prod/SpuController";
 import { useRouter, useSearchParams } from "next/navigation";
+import FileController from "@/api/sys/FileController";
+import * as qiniu from "qiniu-js";
+import { UploadConfig } from "qiniu-js";
 
 const { TextArea } = Input;
 
@@ -52,9 +55,14 @@ export default function SpuEditPage() {
   const [columns, setColumns] = useState<TableProps<SkuProp>["columns"]>();
   const [skuSpecList, setSkuSpecList] = useState<SkuProp[]>([]);
 
+  const [fileList, setFileList] = useState<string[]>([]);
+
   // 表单
   const [spuForm] = Form.useForm<
-    { categoryIdList: string[]; spuStatusChecked: boolean } & SpuDTO
+    {
+      categoryIdList: string[];
+      spuStatusChecked: boolean;
+    } & SpuDTO
   >();
   // 初始化单位、规格、分类、spu、sku
   useEffect(() => {
@@ -88,6 +96,7 @@ export default function SpuEditPage() {
           return { stock: 0, key: sku.skuId, ...sku } as SkuProp;
         });
         setSkuSpecList(skuList);
+        setFileList(res.imgUrlList);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -320,6 +329,7 @@ export default function SpuEditPage() {
           status: status,
           categoryId: categoryIdList[1],
           skus: skuSpecList,
+          imgUrlList: fileList,
         };
         if (currentSpu) {
           // 编辑
@@ -456,34 +466,70 @@ export default function SpuEditPage() {
         {/* ------------------ 规格 end ------------------*/}
 
         <div className={"text-sm font-medium mb-6 "}>图文信息</div>
-        <Form.Item
-          label="图片"
-          getValueFromEvent={(file) => {
-            console.log("file e:", file);
 
-            return "http://img.oldhorse.tech/ul28wnbkoqseppe7g3094rk3.png";
-          }}
-        >
+        <Form.Item label="图片" getValueFromEvent={() => fileList}>
           <Upload
             listType="picture-card"
-            customRequest={(e) => {
-              console.log("customRequest", e);
+            fileList={fileList.map((url) => ({ url, uid: url, name: url }))} // 将 URL 转换为 Upload 所需格式
+            customRequest={async (e) => {
+              // 检查是否超过最大上传数量
+              if (fileList.length >= 9) {
+                alert("最多只能上传 9 张图片");
+                return;
+              }
+              const file = e.file as File;
+              const fileSuffix = file.name.substring(file.name.indexOf("."));
+              const uuid = getUUID();
+              const qiniuFile: qiniu.FileData = {
+                type: "file",
+                key: `${uuid}${fileSuffix}`,
+                data: file,
+              };
+
+              const qiuniuConfig: UploadConfig = {
+                tokenProvider: () => FileController.uptoken(),
+              };
+              const updateTask = qiniu.createDirectUploadTask(
+                qiniuFile,
+                qiuniuConfig,
+              );
+              updateTask.start();
+              updateTask.onProgress((progress) => {
+                console.log("上传进度:", progress.percent);
+                e.onProgress?.({
+                  percent: progress.percent,
+                });
+              });
+              updateTask.onComplete((res) => {
+                console.log("上传完成:", res);
+                const { key } = JSON.parse(res!);
+                const domain = "https://img.oldhorse.tech/";
+                const imageUrl = `${domain}/${key}`;
+                setFileList((prev) => [...prev, imageUrl]);
+              });
+            }}
+            onRemove={(file) => {
+              const newFileList = fileList.filter((url) => url !== file.url);
+              setFileList(newFileList);
               return true;
             }}
           >
-            <button
-              style={{
-                color: "inherit",
-                cursor: "inherit",
-                border: 0,
-                background: "none",
-              }}
-              type="button"
-            >
-              <PlusOutlined />
-            </button>
+            {fileList.length >= 9 ? null : (
+              <button
+                style={{
+                  color: "inherit",
+                  cursor: "inherit",
+                  border: 0,
+                  background: "none",
+                }}
+                type="button"
+              >
+                <PlusOutlined />
+              </button>
+            )}
           </Upload>
         </Form.Item>
+
         <Form.Item label="描述" name={"spuDesc"}>
           <TextArea rows={3} />
         </Form.Item>
@@ -492,6 +538,8 @@ export default function SpuEditPage() {
           {() => (
             <Typography>
               <pre>{JSON.stringify(spuForm.getFieldsValue(), null, 2)}</pre>
+
+              <pre>{JSON.stringify(fileList, null, 2)}</pre>
 
               <pre>{JSON.stringify(skuSpecList, null, 2)}</pre>
             </Typography>

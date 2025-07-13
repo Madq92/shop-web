@@ -62,14 +62,8 @@ export function getStringLength(str: string) {
   return str.replace(/[\u4e00-\u9fa5\uff00-\uffff]/g, "**").length;
 }
 
-/**
- * 获取uuid
- */
 export function getUUID(): string {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const random: number = Math.random() * 16;
-    return (c === "x" ? random : (random & 0x3) | 0x8).toString(16);
-  });
+  return crypto.randomUUID().replace(/-/g, "");
 }
 
 export function stringCase(str: string, type: number) {

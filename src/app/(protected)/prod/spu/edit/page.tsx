@@ -11,7 +11,6 @@ import {
   Switch,
   Table,
   TableProps,
-  Typography,
   Upload,
 } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
@@ -96,7 +95,7 @@ export default function SpuEditPage() {
           return { stock: 0, key: sku.skuId, ...sku } as SkuProp;
         });
         setSkuSpecList(skuList);
-        setFileList(res.imgUrlList);
+        setFileList(res.imgUrlList || []);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -453,16 +452,40 @@ export default function SpuEditPage() {
           </Form.Item>
         )}
 
-        <Form.Item label="规格明细" wrapperCol={{ span: 16 }}>
-          <Table
-            pagination={false}
-            size="small"
-            columns={columns}
-            dataSource={skuSpecList}
-            bordered
-          />
-        </Form.Item>
+        {skuSpecList && skuSpecList.length > 1 && (
+          <Form.Item label="规格明细">
+            <Table
+              pagination={false}
+              size="small"
+              columns={columns}
+              dataSource={skuSpecList}
+              bordered
+            />
+          </Form.Item>
+        )}
 
+        {skuSpecList.length <= 1 && (
+          <Form.Item label="价格">
+            <Input
+              type="number"
+              step="0.1"
+              prefix="￥"
+              suffix="元"
+              required
+              value={skuSpecList && skuSpecList[0] && skuSpecList[0].sellPrice}
+              onChange={(e) =>
+                setSkuSpecList((prev) => {
+                  if (prev.length === 0) {
+                    return [{ sellPrice: Number(e.target.value) } as SkuProp];
+                  }
+                  const newVar = [...prev];
+                  newVar[0].sellPrice = Number(e.target.value);
+                  return newVar;
+                })
+              }
+            />
+          </Form.Item>
+        )}
         {/* ------------------ 规格 end ------------------*/}
 
         <div className={"text-sm font-medium mb-6 "}>图文信息</div>
@@ -470,10 +493,17 @@ export default function SpuEditPage() {
         <Form.Item label="图片" getValueFromEvent={() => fileList}>
           <Upload
             listType="picture-card"
-            fileList={fileList.map((url) => ({ url, uid: url, name: url }))} // 将 URL 转换为 Upload 所需格式
+            fileList={
+              fileList &&
+              fileList.map((url) => ({
+                url,
+                uid: url,
+                name: url,
+              }))
+            } // 将 URL 转换为 Upload 所需格式
             customRequest={async (e) => {
               // 检查是否超过最大上传数量
-              if (fileList.length >= 9) {
+              if (fileList && fileList.length >= 9) {
                 alert("最多只能上传 9 张图片");
                 return;
               }
@@ -495,7 +525,7 @@ export default function SpuEditPage() {
               );
               updateTask.start();
               updateTask.onProgress((progress) => {
-                console.log("上传进度:", progress.percent);
+                // console.log("上传进度:", progress.percent);
                 e.onProgress?.({
                   percent: progress.percent,
                 });
@@ -534,17 +564,17 @@ export default function SpuEditPage() {
           <TextArea rows={3} />
         </Form.Item>
 
-        <Form.Item label="调试信息" shouldUpdate>
-          {() => (
-            <Typography>
-              <pre>{JSON.stringify(spuForm.getFieldsValue(), null, 2)}</pre>
+        {/*<Form.Item label="调试信息" shouldUpdate>*/}
+        {/*  {() => (*/}
+        {/*    <Typography>*/}
+        {/*      <pre>{JSON.stringify(spuForm.getFieldsValue(), null, 2)}</pre>*/}
 
-              <pre>{JSON.stringify(fileList, null, 2)}</pre>
+        {/*      <pre>{JSON.stringify(fileList, null, 2)}</pre>*/}
 
-              <pre>{JSON.stringify(skuSpecList, null, 2)}</pre>
-            </Typography>
-          )}
-        </Form.Item>
+        {/*      <pre>{JSON.stringify(skuSpecList, null, 2)}</pre>*/}
+        {/*    </Typography>*/}
+        {/*  )}*/}
+        {/*</Form.Item>*/}
 
         <Space className={"w-full justify-center py-4"}>
           <Button

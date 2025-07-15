@@ -202,7 +202,7 @@ export default function CategoryPage() {
       </Box>
       {/*====> 弹窗 begin*/}
       <Modal
-        title={currentCategory ? "编辑角色" : "创建角色"}
+        title={currentCategory ? "编辑分类" : "创建分类"}
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => {

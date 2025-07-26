@@ -1,31 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import {
-  Button,
-  Col,
-  Form,
-  Input,
-  Modal,
-  Row,
-  Space,
-  Table,
-  TableProps,
-  Tag,
-} from "antd";
-import Box from "@/components/box";
-import {
-  CheckOutlined,
-  CloseOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
-import ContactController, {
-  ContactDTO,
-  ContactQueryReq,
-  ContactStatusEnumLabels,
-} from "@/api/crm/ContactController";
+import { useEffect, useState } from 'react';
+import { Button, Col, Form, Input, Modal, Row, Space, Table, TableProps, Tag } from 'antd';
+import Box from '@/components/box';
+import { CheckOutlined, CloseOutlined, PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
+import ContactController, { ContactDTO, ContactQueryReq, ContactStatusEnumLabels } from '@/api/crm/ContactController';
 
 export default function ContactPage() {
   const [contactList, setContactList] = useState<ContactDTO[]>([]);
@@ -38,26 +17,26 @@ export default function ContactPage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
-  const columns: TableProps<ContactDTO>["columns"] = [
+  const columns: TableProps<ContactDTO>['columns'] = [
     {
-      title: "姓名",
-      dataIndex: "name",
-      key: "name",
+      title: '姓名',
+      dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: "职位",
-      dataIndex: "title",
-      key: "title",
+      title: '职位',
+      dataIndex: 'title',
+      key: 'title',
     },
     {
-      title: "电话",
-      dataIndex: "phone",
-      key: "phone",
+      title: '电话',
+      dataIndex: 'phone',
+      key: 'phone',
     },
     {
-      title: "邮箱",
-      dataIndex: "email",
-      key: "email",
+      title: '邮箱',
+      dataIndex: 'email',
+      key: 'email',
     },
     // {
     //   title: "默认联系人",
@@ -70,24 +49,16 @@ export default function ContactPage() {
     //   ),
     // },
     {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: (_, contactDto) => (
-        <Tag color={contactDto.status === "ENABLE" ? "green" : "gray"}>
-          {ContactStatusEnumLabels[contactDto.status]}
-        </Tag>
-      ),
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (_, contactDto) => <Tag color={contactDto.status === 'ENABLE' ? 'green' : 'gray'}>{ContactStatusEnumLabels[contactDto.status]}</Tag>,
     },
     {
-      title: "操作",
+      title: '操作',
       render: (_, contactDto) => (
         <>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => handleEdit(contactDto)}
-          >
+          <Button type="link" size="small" onClick={() => handleEdit(contactDto)}>
             编辑
           </Button>
           <Button
@@ -133,10 +104,11 @@ export default function ContactPage() {
 
   useEffect(() => {
     doQuery();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSubmit() {
-    contactForm.validateFields().then(async (contactDto) => {
+    contactForm.validateFields().then(async contactDto => {
       if (currentContact) {
         // 编辑
         await ContactController.edit(currentContact.contactId, contactDto);
@@ -166,12 +138,7 @@ export default function ContactPage() {
             </Col>
             <Col span={6}>
               <Space className="text-left">
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<SearchOutlined />}
-                  onClick={() => doQuery()}
-                >
+                <Button type="primary" htmlType="submit" icon={<SearchOutlined />} onClick={() => doQuery()}>
                   查询
                 </Button>
                 <Button
@@ -193,18 +160,14 @@ export default function ContactPage() {
             创建联系人
           </Button>
 
-          <Button
-            type="primary"
-            icon={<SyncOutlined />}
-            onClick={() => doQuery()}
-          >
+          <Button type="primary" icon={<SyncOutlined />} onClick={() => doQuery()}>
             刷新
           </Button>
         </Space>
         <Table
           dataSource={contactList}
           columns={columns}
-          rowKey={(record) => record.contactId}
+          rowKey={record => record.contactId}
           loading={loading}
           pagination={{
             total,
@@ -216,7 +179,7 @@ export default function ContactPage() {
       </Box>
       {/*====> 弹窗 begin*/}
       <Modal
-        title={currentContact ? "编辑联系人" : "创建联系人"}
+        title={currentContact ? '编辑联系人' : '创建联系人'}
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => {
@@ -226,11 +189,7 @@ export default function ContactPage() {
         footer={null}
       >
         <Form form={contactForm} layout="vertical" name="deviceForm">
-          <Form.Item
-            name="name"
-            label="昵称"
-            rules={[{ required: true, message: "请输入昵称" }]}
-          >
+          <Form.Item name="name" label="昵称" rules={[{ required: true, message: '请输入昵称' }]}>
             <Input placeholder="请输入昵称" />
           </Form.Item>
 
@@ -257,12 +216,7 @@ export default function ContactPage() {
               >
                 取消
               </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<CheckOutlined />}
-                onClick={handleSubmit}
-              >
+              <Button type="primary" htmlType="submit" icon={<CheckOutlined />} onClick={handleSubmit}>
                 确认
               </Button>
             </Space>

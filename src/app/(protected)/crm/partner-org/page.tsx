@@ -106,6 +106,7 @@ export default function PartnerOrgPage() {
 
   useEffect(() => {
     doQuery(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSubmit() {

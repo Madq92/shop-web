@@ -1,10 +1,10 @@
-import { BaseController } from "@/api/BaseController";
-import { PageReq } from "@/api/sys/UserController";
-import { PageDataType } from "@/common/http/types";
+import { BaseController } from '@/api/BaseController';
+import { PageDataType } from '@/common/http/types';
+import { PageReq } from '@/api/generic';
 
 export default class OperLogController extends BaseController {
   static page(req?: OperLogPageReq) {
-    return super.GET<PageDataType<OperLogDTO>>("/oper-log", req);
+    return super.GET<PageDataType<OperLogDTO>>('/oper-log', req);
   }
 
   static detail(logId: string) {

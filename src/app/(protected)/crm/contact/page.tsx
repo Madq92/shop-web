@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Col, Form, Input, Modal, Row, Space, Table, TableProps, Tag } from 'antd';
+import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag } from 'antd';
 import Box from '@/components/box';
 import { CheckOutlined, CloseOutlined, PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
 import ContactController, { ContactDTO, ContactQueryReq, ContactStatusEnumLabels } from '@/api/crm/ContactController';
+import { enumToOptions } from '@/api/types';
+import { UserStatusLabels } from '@/api/sys/UserController';
+import PartnerOrgController, { PartnerOrgQueryReq } from '@/api/crm/PartnerOrgController';
+import DebounceSelect from '@/components/debounce-select';
+
+const userStatusOption = enumToOptions(UserStatusLabels);
 
 export default function ContactPage() {
   const [contactList, setContactList] = useState<ContactDTO[]>([]);
@@ -126,6 +132,25 @@ export default function ContactPage() {
     setPageSize(pageSize);
     doQuery(page);
   };
+
+  const fetchUserList = async (name: string) => {
+    console.log('Fetching user list with name:', name);
+    const params: PartnerOrgQueryReq = {
+      pageSize: 100,
+      pageNum: 1,
+    };
+    if (name) {
+      params.name = name;
+    }
+
+    const result = await PartnerOrgController.page(params);
+
+    return result.records?.map(partnerOrg => ({
+      label: partnerOrg.name,
+      value: partnerOrg.partnerOrgId,
+    }));
+  };
+
   return (
     <>
       <Box className="mb-4">
@@ -134,6 +159,16 @@ export default function ContactPage() {
             <Col span={6}>
               <Form.Item name="name" label="昵称">
                 <Input placeholder="请输入昵称" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="partnerOrgId" label="机构">
+                <DebounceSelect fetchOptions={fetchUserList} debounceTimeout={500} initLoad={true} />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="status" label="状态">
+                <Select options={userStatusOption}></Select>
               </Form.Item>
             </Col>
             <Col span={6}>

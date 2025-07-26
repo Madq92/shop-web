@@ -1,7 +1,13 @@
-import { JSEncrypt } from "jsencrypt";
-import dayjs from "dayjs";
-import { ANY_OBJECT } from "@/api/generic";
-import { UserDTO } from "@/api/sys/UserController";
+import { JSEncrypt } from 'jsencrypt';
+import dayjs from 'dayjs';
+import { UserDTO } from '@/api/sys/UserController';
+
+export type T = ANY_OBJECT;
+
+export type ANY_OBJECT = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+};
 
 export type WithChildren<D> = D & {
   children?: WithChildren<D>[];
@@ -16,14 +22,10 @@ export type WithChildren<D> = D & {
  * @param {String} pid 父字段字段名
  * @returns {Array} 转换后的树数据
  */
-export function treeDataTranslate<D>(
-  data: Array<D>,
-  id = "id",
-  pid = "parentId",
-): WithChildren<D>[] {
+export function treeDataTranslate<D>(data: Array<D>, id = 'id', pid = 'parentId'): WithChildren<D>[] {
   const res: WithChildren<D>[] = [];
   const temp: ANY_OBJECT = {};
-  const dataList: ANY_OBJECT[] = data.map((item) => {
+  const dataList: ANY_OBJECT[] = data.map(item => {
     return { ...item } as ANY_OBJECT;
   });
   for (let i = 0; i < dataList.length; i++) {
@@ -36,15 +38,15 @@ export function treeDataTranslate<D>(
     const d = dataList[k];
     if (d) {
       if (temp[d[pid]] && d[id] !== d[pid]) {
-        if (!temp[d[pid]]["children"]) {
-          temp[d[pid]]["children"] = [];
+        if (!temp[d[pid]]['children']) {
+          temp[d[pid]]['children'] = [];
         }
-        if (!temp[d[pid]]["_level"]) {
-          temp[d[pid]]["_level"] = 1;
+        if (!temp[d[pid]]['_level']) {
+          temp[d[pid]]['_level'] = 1;
         }
-        d["_level"] = temp[d[pid]]._level + 1;
-        d["_parent"] = d[pid];
-        temp[d[pid]]["children"].push(d);
+        d['_level'] = temp[d[pid]]._level + 1;
+        d['_parent'] = d[pid];
+        temp[d[pid]]['children'].push(d);
       } else {
         res.push(d as WithChildren<D>);
       }
@@ -59,15 +61,15 @@ export function treeDataTranslate<D>(
  * @param {String} str 要获取长度的字符串
  */
 export function getStringLength(str: string) {
-  return str.replace(/[\u4e00-\u9fa5\uff00-\uffff]/g, "**").length;
+  return str.replace(/[\u4e00-\u9fa5\uff00-\uffff]/g, '**').length;
 }
 
 export function getUUID(): string {
-  return crypto.randomUUID().replace(/-/g, "");
+  return crypto.randomUUID().replace(/-/g, '');
 }
 
 export function stringCase(str: string, type: number) {
-  if (str == null || str === "") return str;
+  if (str == null || str === '') return str;
   if (type === 0) {
     // 首字母小写
     return str.slice(0, 1).toLowerCase() + str.slice(1);
@@ -84,7 +86,7 @@ export function stringCase(str: string, type: number) {
  */
 export function nameTranslate(name: string, type: 0 | 1) {
   name = name.toLowerCase();
-  let nameArray = name.split("_");
+  let nameArray = name.split('_');
   nameArray.forEach((item, index) => {
     if (index === 0) {
       name = type === 1 ? item.slice(0, 1).toUpperCase() + item.slice(1) : item;
@@ -93,7 +95,7 @@ export function nameTranslate(name: string, type: 0 | 1) {
     }
   });
 
-  nameArray = name.split("-");
+  nameArray = name.split('-');
   nameArray.forEach((item, index) => {
     if (index === 0) {
       name = type === 1 ? item.slice(0, 1).toUpperCase() + item.slice(1) : item;
@@ -112,13 +114,7 @@ export function nameTranslate(name: string, type: 0 | 1) {
  * @param {String} idKey 主键字段名
  * @param {String} childKey 子节点字段名
  */
-function findNode(
-  node: ANY_OBJECT,
-  id: string | number | undefined,
-  list?: Array<ANY_OBJECT> | undefined,
-  idKey = "id",
-  childKey = "children",
-): ANY_OBJECT | undefined {
+function findNode(node: ANY_OBJECT, id: string | number | undefined, list?: Array<ANY_OBJECT> | undefined, idKey = 'id', childKey = 'children'): ANY_OBJECT | undefined {
   if (Array.isArray(list)) list.push(node);
   if (node[idKey] === id) {
     return node;
@@ -126,13 +122,7 @@ function findNode(
 
   if (node[childKey] != null && Array.isArray(node[childKey])) {
     for (let i = 0; i < node[childKey].length; i++) {
-      const tempNode: ANY_OBJECT | undefined = findNode(
-        node[childKey][i],
-        id,
-        list,
-        idKey,
-        childKey,
-      );
+      const tempNode: ANY_OBJECT | undefined = findNode(node[childKey][i], id, list, idKey, childKey);
       if (tempNode) return tempNode;
     }
   }
@@ -147,12 +137,7 @@ function findNode(
  * @param {*} idKey 主键字段名
  * @param {*} childKey 子节点字段名
  */
-export function findTreeNodeObjectPath(
-  treeRoot: ANY_OBJECT,
-  id: string | number | undefined,
-  idKey = "id",
-  childKey = "children",
-) {
+export function findTreeNodeObjectPath(treeRoot: ANY_OBJECT, id: string | number | undefined, idKey = 'id', childKey = 'children') {
   const tempList: ANY_OBJECT[] = [];
   for (let i = 0; i < treeRoot.length; i++) {
     if (findNode(treeRoot[i], id, tempList, idKey, childKey)) {
@@ -163,15 +148,8 @@ export function findTreeNodeObjectPath(
   return [];
 }
 
-export function findTreeNodePath<D>(
-  treeRoot: Array<D>,
-  id: string | number | undefined,
-  idKey = "id",
-  childKey = "children",
-): Array<string | number> {
-  return (findTreeNodeObjectPath(treeRoot, id, idKey, childKey) || []).map(
-    (item) => item[idKey],
-  );
+export function findTreeNodePath<D>(treeRoot: Array<D>, id: string | number | undefined, idKey = 'id', childKey = 'children'): Array<string | number> {
+  return (findTreeNodeObjectPath(treeRoot, id, idKey, childKey) || []).map(item => item[idKey]);
 }
 
 /**
@@ -181,25 +159,16 @@ export function findTreeNodePath<D>(
  * @param {*} idKey 主键字段名
  * @param {*} childKey 子节点字段名
  */
-export function findTreeNode(
-  treeRoot: ANY_OBJECT,
-  id: string,
-  idKey = "id",
-  childKey = "children",
-) {
+export function findTreeNode(treeRoot: ANY_OBJECT, id: string, idKey = 'id', childKey = 'children') {
   for (let i = 0; i < treeRoot.length; i++) {
     const tempNode = findNode(treeRoot[i], id, undefined, idKey, childKey);
     if (tempNode) return tempNode;
   }
 }
 
-export function traverseTree(
-  root: ANY_OBJECT,
-  callback: (node: ANY_OBJECT) => void,
-  childKey = "children",
-) {
+export function traverseTree(root: ANY_OBJECT, callback: (node: ANY_OBJECT) => void, childKey = 'children') {
   function traverseNode(node: ANY_OBJECT) {
-    if (typeof callback === "function") callback(node);
+    if (typeof callback === 'function') callback(node);
     if (Array.isArray(node[childKey])) {
       node[childKey].forEach((suNode: ANY_OBJECT) => {
         traverseNode(suNode);
@@ -208,7 +177,7 @@ export function traverseTree(
   }
 
   if (Array.isArray(root)) {
-    root.forEach((node) => {
+    root.forEach(node => {
       traverseNode(node);
     });
   }
@@ -223,15 +192,15 @@ export function objectToQueryString(params: ANY_OBJECT | null) {
     return null;
   } else {
     return Object.keys(params)
-      .map((key) => {
+      .map(key => {
         if (params[key] !== undefined) {
           return `${key}=${params[key]}`;
         } else {
           return undefined;
         }
       })
-      .filter((item) => item != null)
-      .join("&");
+      .filter(item => item != null)
+      .join('&');
   }
 }
 
@@ -243,19 +212,11 @@ export function objectToQueryString(params: ANY_OBJECT | null) {
  * @param {Boolean} removeItem 是否从数组中移除查找到的节点
  * @returns {Object} 找到返回节点，没找到返回undefined
  */
-export function findItemFromList(
-  list: ANY_OBJECT[],
-  id: string | number | undefined | null,
-  idKey: string | null = null,
-  removeItem = false,
-) {
+export function findItemFromList(list: ANY_OBJECT[], id: string | number | undefined | null, idKey: string | null = null, removeItem = false) {
   if (Array.isArray(list) && list.length > 0 && id != null) {
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
-      if (
-        ((idKey == null || idKey === "") && item.toString() === id) ||
-        (idKey != null && item[idKey] === id)
-      ) {
+      if (((idKey == null || idKey === '') && item.toString() === id) || (idKey != null && item[idKey] === id)) {
         if (removeItem) list.splice(i, 1);
         return item;
       }
@@ -270,7 +231,7 @@ export function findItemFromList(
  * @param {*} value 要保存的数据
  */
 export function setObjectToSessionStorage(key: string, value: ANY_OBJECT) {
-  if (key == null || key === "") return false;
+  if (key == null || key === '') return false;
   if (value == null) {
     window.sessionStorage.removeItem(key);
     return true;
@@ -288,10 +249,7 @@ export function setObjectToSessionStorage(key: string, value: ANY_OBJECT) {
  * @param {String} key 键值
  * @param {*} defaultValue 默认值
  */
-export function getObjectFromSessionStorage(
-  key: string,
-  defaultValue: ANY_OBJECT,
-): ANY_OBJECT {
+export function getObjectFromSessionStorage(key: string, defaultValue: ANY_OBJECT): ANY_OBJECT {
   let jsonObj: ANY_OBJECT;
   try {
     const val: string | null = sessionStorage.getItem(key);
@@ -330,68 +288,60 @@ export function random(min: number, max: number) {
  * @param {*} value 要加密的字符串
  */
 const publicKey =
-  "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpC4QMnbTrQOFriJJCCFFWhlruBJThAEBfRk7pRx1jsAhyNVL3CqJb0tRvpnbCnJhrRAEPdgFHXv5A0RrvFp+5Cw7QoFH6O9rKB8+0H7+aVQeKITMUHf/XMXioymw6Iq4QfWd8RhdtM1KM6eGTy8aU7SO2s69Mc1LXefg/x3yw6wIDAQAB";
+  'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpC4QMnbTrQOFriJJCCFFWhlruBJThAEBfRk7pRx1jsAhyNVL3CqJb0tRvpnbCnJhrRAEPdgFHXv5A0RrvFp+5Cw7QoFH6O9rKB8+0H7+aVQeKITMUHf/XMXioymw6Iq4QfWd8RhdtM1KM6eGTy8aU7SO2s69Mc1LXefg/x3yw6wIDAQAB';
 
 export function encrypt(value: string): string | null {
-  if (value == null || value === "") return null;
+  if (value == null || value === '') return null;
   const encrypt = new JSEncrypt();
   encrypt.setPublicKey(publicKey);
   return encodeURIComponent(encrypt.encrypt(value));
 }
 
 export function getTokenValue() {
-  return sessionStorage.getItem("tokenValue");
+  return sessionStorage.getItem('tokenValue');
 }
 
 export function setTokenValue(token: string | null | undefined) {
-  if (token == null || token === "") {
-    sessionStorage.removeItem("tokenValue");
+  if (token == null || token === '') {
+    sessionStorage.removeItem('tokenValue');
   } else {
-    sessionStorage.setItem("tokenValue", token);
+    sessionStorage.setItem('tokenValue', token);
   }
 }
 
 export function getTokenName() {
-  return sessionStorage.getItem("tokenName");
+  return sessionStorage.getItem('tokenName');
 }
 
 export function setTokenName(token: string | null | undefined) {
-  if (token == null || token === "") {
-    sessionStorage.removeItem("tokenName");
+  if (token == null || token === '') {
+    sessionStorage.removeItem('tokenName');
   } else {
-    sessionStorage.setItem("tokenName", token);
+    sessionStorage.setItem('tokenName', token);
   }
 }
 
 export function getCurrentUserInfo() {
-  const userInfoString = sessionStorage.getItem("currentUser");
+  const userInfoString = sessionStorage.getItem('currentUser');
   if (userInfoString == null) return null;
   return JSON.parse(userInfoString) as UserDTO;
 }
 
 export function setCurrentUserInfo(user: UserDTO | null) {
   if (user == null) {
-    sessionStorage.removeItem("currentUser");
+    sessionStorage.removeItem('currentUser');
   } else {
-    sessionStorage.setItem("currentUser", JSON.stringify(user));
+    sessionStorage.setItem('currentUser', JSON.stringify(user));
   }
 }
 
-export function traversalTree(
-  treeNode: ANY_OBJECT,
-  callback: (treeNode: ANY_OBJECT) => void,
-  childrenKey = "children",
-) {
-  if (
-    treeNode != null &&
-    Array.isArray(treeNode[childrenKey]) &&
-    treeNode[childrenKey].length > 0
-  ) {
+export function traversalTree(treeNode: ANY_OBJECT, callback: (treeNode: ANY_OBJECT) => void, childrenKey = 'children') {
+  if (treeNode != null && Array.isArray(treeNode[childrenKey]) && treeNode[childrenKey].length > 0) {
     treeNode[childrenKey].forEach((childNode: ANY_OBJECT) => {
       traversalTree(childNode, callback, childrenKey);
     });
   }
-  return typeof callback === "function" ? callback(treeNode) : undefined;
+  return typeof callback === 'function' ? callback(treeNode) : undefined;
 }
 
 export class TreeTableImpl {
@@ -411,16 +361,16 @@ export class TreeTableImpl {
     },
   ) {
     this.options = {
-      idKey: options ? options.idKey : "id",
-      nameKey: options ? options.nameKey : "name",
-      parentIdKey: options ? options.parentIdKey : "parentId",
+      idKey: options ? options.idKey : 'id',
+      nameKey: options ? options.nameKey : 'name',
+      parentIdKey: options ? options.parentIdKey : 'parentId',
       isLefeCallback: options ? options.isLefeCallback : undefined,
       checkStrictly: options ? options.checkStrictly : false,
     };
 
     this.dataList = Array.isArray(dataList) ? dataList : [];
     this.dataMap = new Map();
-    this.dataList.forEach((item) => {
+    this.dataList.forEach(item => {
       this.dataMap.set(item[this.options.idKey], item);
     });
     // 表格选中行
@@ -438,13 +388,10 @@ export class TreeTableImpl {
     const { idKey, nameKey, parentIdKey, isLefeCallback } = this.options;
     const tempMap = new Map();
     const parentIdList: ANY_OBJECT[] = [];
-    this.dataList.forEach((item) => {
+    this.dataList.forEach(item => {
       if (
-        (filterString == null ||
-          filterString === "" ||
-          item[nameKey].indexOf(filterString) !== -1) &&
-        (!onlyChecked ||
-          (this.checkedRows != null && this.checkedRows.get(item[idKey])))
+        (filterString == null || filterString === '' || item[nameKey].indexOf(filterString) !== -1) &&
+        (!onlyChecked || (this.checkedRows != null && this.checkedRows.get(item[idKey])))
       ) {
         if (!isLefeCallback || !isLefeCallback(item)) {
           parentIdList.push(item[idKey]);
@@ -458,17 +405,11 @@ export class TreeTableImpl {
       }
     });
 
-    return this.dataList.map((item) => {
+    return this.dataList.map(item => {
       let disabled = true;
 
-      if (
-        parentIdList.indexOf(item[parentIdKey]) !== -1 ||
-        tempMap.get(item[idKey]) != null
-      ) {
-        if (
-          parentIdList.indexOf(item[parentIdKey]) !== -1 &&
-          (isLefeCallback == null || !isLefeCallback(item))
-        ) {
+      if (parentIdList.indexOf(item[parentIdKey]) !== -1 || tempMap.get(item[idKey]) != null) {
+        if (parentIdList.indexOf(item[parentIdKey]) !== -1 && (isLefeCallback == null || !isLefeCallback(item))) {
           parentIdList.push(item[idKey]);
         }
         disabled = false;
@@ -485,19 +426,12 @@ export class TreeTableImpl {
    * 获取表格树数据，计算选中状态
    * @param {array} dataList 表格列表数据
    */
-  getTableTreeData(
-    dataList: ANY_OBJECT[],
-    checkedRows: Map<string, ANY_OBJECT>,
-  ) {
+  getTableTreeData(dataList: ANY_OBJECT[], checkedRows: Map<string, ANY_OBJECT>) {
     const { idKey, parentIdKey, checkStrictly } = this.options;
     let treeData: ANY_OBJECT[] = [];
 
-    function calcPermCodeTreeAttribute(
-      treeNode: ANY_OBJECT,
-      checkedRows: Map<string, ANY_OBJECT>,
-    ) {
-      const checkedItem =
-        checkedRows == null ? null : checkedRows.get(treeNode[idKey]);
+    function calcPermCodeTreeAttribute(treeNode: ANY_OBJECT, checkedRows: Map<string, ANY_OBJECT>) {
+      const checkedItem = checkedRows == null ? null : checkedRows.get(treeNode[idKey]);
       treeNode.__checked = checkedItem != null;
       // 是否所有子权限字都被选中
       let allChildChecked = true;
@@ -513,22 +447,20 @@ export class TreeTableImpl {
       } else {
         allChildChecked = false;
       }
-      treeNode.__indeterminate =
-        !checkStrictly && hasChildChecked && !allChildChecked;
-      treeNode.__checked =
-        treeNode.__checked || (allChildChecked && !checkStrictly);
+      treeNode.__indeterminate = !checkStrictly && hasChildChecked && !allChildChecked;
+      treeNode.__checked = treeNode.__checked || (allChildChecked && !checkStrictly);
       return treeNode.__checked || treeNode.__indeterminate;
     }
 
     if (Array.isArray(dataList)) {
       treeData = treeDataTranslate(
-        dataList.map((item) => {
+        dataList.map(item => {
           return { ...item };
         }),
         idKey,
         parentIdKey,
       );
-      treeData.forEach((item) => {
+      treeData.forEach(item => {
         calcPermCodeTreeAttribute(item, checkedRows);
       });
     }
@@ -556,7 +488,7 @@ export class TreeTableImpl {
       this.checkedRows.set(row[idKey], row);
       if (Array.isArray(row.children) && !this.options.checkStrictly) {
         row.children.forEach((childNode: ANY_OBJECT) => {
-          traversalTree(childNode, (node) => {
+          traversalTree(childNode, node => {
             this.checkedRows?.set(node[idKey], node);
           });
         });
@@ -566,7 +498,7 @@ export class TreeTableImpl {
       this.checkedRows.delete(row[idKey]);
       if (Array.isArray(row.children) && !this.options.checkStrictly) {
         row.children.forEach((childNode: ANY_OBJECT) => {
-          traversalTree(childNode, (node) => {
+          traversalTree(childNode, node => {
             this.checkedRows?.delete(node[idKey]);
           });
         });
@@ -591,8 +523,8 @@ export class TreeTableImpl {
     }
 
     if (Array.isArray(treeData) && treeData.length > 0) {
-      treeData.forEach((permCode) => {
-        traversalTree(permCode, traversalCallback, "children");
+      treeData.forEach(permCode => {
+        traversalTree(permCode, traversalCallback, 'children');
       });
     }
 
@@ -606,7 +538,7 @@ export class TreeTableImpl {
   setCheckedRows(checkedRows: ANY_OBJECT[]) {
     this.checkedRows = new Map();
     if (Array.isArray(checkedRows)) {
-      checkedRows.forEach((item) => {
+      checkedRows.forEach(item => {
         const node = this.dataMap.get(item[this.options.idKey]);
         if (node != null) {
           this.checkedRows?.set(node[this.options.idKey], node);
@@ -624,17 +556,11 @@ export class TreeTableImpl {
   }
 }
 
-export function formatDate(
-  date: string | number | Date | dayjs.Dayjs | null | undefined,
-  formatString: string | undefined,
-) {
+export function formatDate(date: string | number | Date | dayjs.Dayjs | null | undefined, formatString: string | undefined) {
   return dayjs(date).format(formatString);
 }
 
-export function parseDate(
-  date: string | number | Date,
-  formatString: string | undefined,
-) {
+export function parseDate(date: string | number | Date, formatString: string | undefined) {
   return dayjs(date, formatString);
 }
 
@@ -643,10 +569,10 @@ export function fileToBase64(file: File) {
     if (file == null) return reject();
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = (e) => {
+    reader.onload = e => {
       resolve(e.target?.result as string);
     };
-    reader.onerror = (e) => {
+    reader.onerror = e => {
       reject(e);
     };
   });
@@ -654,11 +580,11 @@ export function fileToBase64(file: File) {
 
 export function getObjectValue(data: ANY_OBJECT, fieldName: string) {
   if (data == null) return undefined;
-  if (fieldName == null || fieldName === "") return data;
-  const fieldPath = fieldName.split(".");
+  if (fieldName == null || fieldName === '') return data;
+  const fieldPath = fieldName.split('.');
   let tempValue = data;
   if (Array.isArray(fieldPath)) {
-    fieldPath.forEach((key) => {
+    fieldPath.forEach(key => {
       if (tempValue != null) {
         tempValue = tempValue[key];
       }
@@ -670,11 +596,7 @@ export function getObjectValue(data: ANY_OBJECT, fieldName: string) {
 
 // 判断输入值是否一个Object
 export function isObject(obj: ANY_OBJECT) {
-  return (
-    obj != null &&
-    typeof obj === "object" &&
-    obj.toString() === "[object Object]"
-  );
+  return obj != null && typeof obj === 'object' && obj.toString() === '[object Object]';
 }
 
 function copyObject(obj: ANY_OBJECT): ANY_OBJECT {
@@ -685,7 +607,7 @@ function copyObject(obj: ANY_OBJECT): ANY_OBJECT {
 export function deepMerge(obj1: ANY_OBJECT, obj2: ANY_OBJECT) {
   const tempObj = copyObject(obj1);
   if (obj2 != null) {
-    Object.keys(obj2).forEach((key) => {
+    Object.keys(obj2).forEach(key => {
       const val2 = obj2[key];
       const val1 = tempObj[key];
       if (isObject(val2)) {

@@ -1,13 +1,13 @@
-import { BaseController } from "@/api/BaseController";
-import { PageDataType } from "@/common/http/types";
-import { PageReq } from "@/api/generic";
+import { BaseController } from '@/api/BaseController';
+import { PageDataType } from '@/common/http/types';
+import { PageReq } from '@/api/generic';
 
 export default class PartnerOrgController extends BaseController {
   /**
    * 公司列表
    */
   static page(req: PartnerOrgQueryReq) {
-    return super.GET<PageDataType<PartnerOrgDTO>>("/partner-org", req);
+    return super.GET<PageDataType<PartnerOrgDTO>>('/partner-org', req);
   }
 
   /**
@@ -21,7 +21,7 @@ export default class PartnerOrgController extends BaseController {
    * 公司创建
    */
   static create(partnerOrg: PartnerOrgDTO) {
-    return super.POST<string>("/partner-org", partnerOrg);
+    return super.POST<string>('/partner-org', partnerOrg);
   }
 
   /**
@@ -42,34 +42,28 @@ export default class PartnerOrgController extends BaseController {
 // ========== 类型定义 ==========
 
 // 合作机构类型枚举
-export type PartnerOrgTypeEnum =
-  | "SUPPLIER"
-  | "CUSTOMER"
-  | "LOGISTICS"
-  | "BANK"
-  | "OTHER";
+export type PartnerOrgTypeEnum = 'SUPPLIER' | 'CUSTOMER' | 'LOGISTICS' | 'BANK' | 'OTHER';
 
 // 合作机构类型枚举描述映射
 export const PartnerOrgTypeEnumLabels: Record<PartnerOrgTypeEnum, string> = {
-  CUSTOMER: "顾客",
-  SUPPLIER: "供应商",
-  LOGISTICS: "物流",
-  BANK: "银行",
-  OTHER: "其他",
+  CUSTOMER: '顾客',
+  SUPPLIER: '供应商',
+  LOGISTICS: '物流',
+  BANK: '银行',
+  OTHER: '其他',
 };
 
 export type PartnerOrgQueryReq = PageReq & {
-  parentId?: string;
+  partnerOrgId?: string;
   name?: string;
 };
 
-export type PartnerOrgStatusEnum = "ENABLE" | "DISABLE";
+export type PartnerOrgStatusEnum = 'ENABLE' | 'DISABLE';
 
-export const PartnerOrgStatusEnumLabels: Record<PartnerOrgStatusEnum, string> =
-  {
-    ENABLE: "启用",
-    DISABLE: "禁用",
-  };
+export const PartnerOrgStatusEnumLabels: Record<PartnerOrgStatusEnum, string> = {
+  ENABLE: '启用',
+  DISABLE: '禁用',
+};
 
 /**
  * 合作机构数据传输对象

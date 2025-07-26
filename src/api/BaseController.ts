@@ -5,8 +5,9 @@ import {
   downloadBlob,
   upload,
 } from "@/common/http/request";
-import { RequestMethods, RequestOption } from "@/common/http/types";
-import { ANY_OBJECT } from "@/api/generic";
+import { RequestMethods, RequestOption } from '@/common/http/types';
+import { ANY_OBJECT } from "@/common/utils";
+
 
 export class BaseController {
   static async GET<D>(

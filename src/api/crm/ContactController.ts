@@ -1,6 +1,7 @@
 import { BaseController } from "@/api/BaseController";
 import { PageDataType } from "@/common/http/types";
-import { PageReq } from "@/api/sys/UserController";
+import { PageReq } from "@/api/generic";
+import { YesOrNoEnum } from "@/api/types";
 
 export default class ContactController extends BaseController {
   /**
@@ -81,7 +82,12 @@ export type ContactQueryReq = PageReq & {
   parentId?: string;
   name?: string;
 };
+export type ContactStatusEnum = "ENABLE" | "DISABLE";
 
+export const ContactStatusEnumLabels: Record<ContactStatusEnum, string> = {
+  ENABLE: "启用",
+  DISABLE: "禁用",
+};
 /**
  * 联系人数据传输对象
  */
@@ -93,9 +99,9 @@ export type ContactDTO = {
   phone: string;
   email: string;
   wechat: string;
-  isPrimary: boolean;
+  defaultFlag: YesOrNoEnum;
   remark: string;
-  status: string;
+  status: ContactStatusEnum;
 };
 
 /**
@@ -114,5 +120,5 @@ export type PartnerAddressDTO = {
   areaCode: string;
   areaName: string;
   address: string;
-  defaultFlag: string;
+  defaultFlag: YesOrNoEnum;
 };

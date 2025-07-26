@@ -24,9 +24,10 @@ import {
 import ContactController, {
   ContactDTO,
   ContactQueryReq,
+  ContactStatusEnumLabels,
 } from "@/api/crm/ContactController";
 
-export default function CategoryPage() {
+export default function ContactPage() {
   const [contactList, setContactList] = useState<ContactDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [contactForm] = Form.useForm<ContactDTO>();
@@ -39,7 +40,7 @@ export default function CategoryPage() {
 
   const columns: TableProps<ContactDTO>["columns"] = [
     {
-      title: "昵称",
+      title: "姓名",
       dataIndex: "name",
       key: "name",
     },
@@ -58,13 +59,23 @@ export default function CategoryPage() {
       dataIndex: "email",
       key: "email",
     },
+    // {
+    //   title: "默认联系人",
+    //   dataIndex: "defaultFlag",
+    //   key: "defaultFlag",
+    //   render: (_, contactDto) => (
+    //     <Tag color={contactDto.defaultFlag === "Y" ? "green" : "gray"}>
+    //       {YesOrNoEnumLabels[contactDto.defaultFlag]}
+    //     </Tag>
+    //   ),
+    // },
     {
       title: "状态",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-        <Tag color={status === "ENABLE" ? "green" : "gray"}>
-          {status === "ENABLE" ? "启用" : "停用"}
+      render: (_, contactDto) => (
+        <Tag color={contactDto.status === "ENABLE" ? "green" : "gray"}>
+          {ContactStatusEnumLabels[contactDto.status]}
         </Tag>
       ),
     },

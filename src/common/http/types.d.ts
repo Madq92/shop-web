@@ -36,10 +36,3 @@ export type PageDataType<T> = {
   size: number;
   current: number;
 };
-
-export type TableData<T> = {
-  dataList: T[];
-  totalCount: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-};

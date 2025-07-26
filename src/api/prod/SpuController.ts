@@ -1,7 +1,7 @@
 import { BaseController } from "@/api/BaseController";
 import { PageDataType } from "@/common/http/types";
 import { DictDTO } from "./DictController";
-import { PageReq } from "@/api/sys/UserController";
+import { PageReq } from "@/api/generic";
 
 export default class SpuController extends BaseController {
   /**
@@ -48,11 +48,6 @@ export type SpuQueryReq = PageReq & {
 export enum SpuTypeEnum {
   SINGLE = "SINGLE",
   MULTI = "MULTI",
-}
-
-export enum YesOrNoEnum {
-  YES = "Y",
-  NO = "N",
 }
 
 export enum ProdStatusEnum {

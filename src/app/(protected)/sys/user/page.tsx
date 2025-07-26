@@ -1,61 +1,29 @@
-"use client";
+'use client';
 
-import UserController, {
-  UserDTO,
-  UserGender,
-  UserPageReq,
-  UserStatus,
-} from "@/api/sys/UserController";
-import { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Col,
-  Form,
-  Input,
-  Modal,
-  Row,
-  Select,
-  SelectProps,
-  Space,
-  Table,
-  TableProps,
-  Tag,
-  Tree,
-} from "antd";
-import Box from "@/components/box";
-import {
-  CheckOutlined,
-  CloseOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
-import dayjs from "dayjs";
-import RoleController, { RoleDTO } from "@/api/sys/RoleController";
-import { treeDataTranslate } from "@/common/utils";
+import UserController, { UserDTO, UserGender, UserGenderLabels, UserPageReq, UserStatus, UserStatusLabels } from '@/api/sys/UserController';
+import { useEffect, useMemo, useState } from 'react';
+import { Button, Col, Form, Image, Input, Modal, Row, Select, SelectProps, Space, Table, TableProps, Tag, Tree } from 'antd';
+import Box from '@/components/box';
+import { CheckOutlined, CloseOutlined, PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import RoleController, { RoleDTO } from '@/api/sys/RoleController';
+import { treeDataTranslate } from '@/common/utils';
+import { enumToOptions } from '@/api/types';
 
-const UserGenderTag: React.FC<{ genderStr: string | undefined }> = ({
-  genderStr,
-}) => {
-  if (!genderStr) {
+const UserGenderTag = ({ userGender }: { userGender: UserGender | undefined }) => {
+  if (!userGender) {
     return <></>;
   }
-  const gender = UserGender[genderStr as keyof typeof UserGender];
-  return (
-    <Tag color={gender === UserGender.MALE ? "blue" : "magenta"}>{gender}</Tag>
-  );
+  const userGenderLabel = UserGenderLabels[userGender];
+  return <Tag color={userGenderLabel.color}>{userGenderLabel.label}</Tag>;
 };
 
-const UserStatusTag: React.FC<{ statusStr: string | undefined }> = ({
-  statusStr,
-}) => {
-  if (!statusStr) {
+const UserStatusTag = ({ userStatus }: { userStatus: UserStatus | undefined }) => {
+  if (!userStatus) {
     return <></>;
   }
-  const status = UserStatus[statusStr as keyof typeof UserStatus];
-  return (
-    <Tag color={status === UserStatus.ENABLE ? "green" : "red"}>{status}</Tag>
-  );
+  const userStatusLabel = UserStatusLabels[userStatus];
+  return <Tag color={userStatusLabel.color}>{userStatusLabel.label}</Tag>;
 };
 
 export default function UserPage() {
@@ -67,66 +35,88 @@ export default function UserPage() {
   const [currentUser, setCurrentUser] = useState<UserDTO>();
   const [queryForm] = Form.useForm<UserPageReq>();
 
-  const [userRoleOptions, setUserRoleOptions] = useState<
-    SelectProps["options"]
-  >([]);
+  const [userRoleOptions, setUserRoleOptions] = useState<SelectProps['options']>([]);
   const [currenUserRoleIds, setCurrenUserRoleIds] = useState<string[]>([]);
 
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
-  const columns: TableProps<UserDTO>["columns"] = [
-    // {
-    //     title: '头像',
-    //     dataIndex: 'avatar',
-    //     key: 'avatar',
-    // },
+  const fetchRoleResource = () => {
+    RoleController.list().then(roleList => {
+      const roleOptions = roleList.map(role => ({
+        label: role.roleName,
+        value: role.roleId,
+      }));
+      setUserRoleOptions(roleOptions);
+    });
+  };
+  const columns: TableProps<UserDTO>['columns'] = [
     {
-      title: "姓名",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "邮箱",
-      dataIndex: "email",
-      key: "email",
-    },
-    {
-      title: "电话",
-      dataIndex: "phonenumber",
-      key: "phonenumber",
-    },
-    {
-      title: "性别",
-      dataIndex: "sex",
-      key: "sex",
-      render: (_, userDto) => (
-        <UserGenderTag genderStr={userDto.gender}></UserGenderTag>
-      ),
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: (_, userDto) => (
-        <UserStatusTag statusStr={userDto.status}></UserStatusTag>
-      ),
-    },
-    {
-      title: "上次登录时间",
-      dataIndex: "loginDate",
-      key: "loginDate",
+      title: '头像',
+      dataIndex: 'avatar',
+      key: 'avatar',
       render: (_, userDto) => {
-        const loginDate = dayjs(userDto.loginDate);
-        if (!loginDate.isValid()) {
-          return "";
+        if (!userDto.avatar) {
+          return <></>;
         }
-        return loginDate.format("YYYY-MM-DD HH:mm:ss");
+        return (
+          <Image
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+            }}
+            src={userDto.avatar}
+            alt={userDto.name}
+          />
+        );
       },
     },
     {
-      title: "操作",
+      title: '姓名',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: '邮箱',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: '电话',
+      dataIndex: 'phonenumber',
+      key: 'phonenumber',
+    },
+    {
+      title: '性别',
+      dataIndex: 'sex',
+      key: 'sex',
+      render: (_, userDto) => {
+        const userGenderLabel = UserGenderLabels[userDto.gender];
+        return <Tag color={userGenderLabel.color}>{userGenderLabel.label}</Tag>;
+      },
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (_, userDto) => <UserStatusTag userStatus={userDto.status}></UserStatusTag>,
+    },
+    {
+      title: '上次登录时间',
+      dataIndex: 'loginDate',
+      key: 'loginDate',
+      render: (_, userDto) => {
+        const loginDate = dayjs(userDto.loginDate);
+        if (!loginDate.isValid()) {
+          return '';
+        }
+        return loginDate.format('YYYY-MM-DD HH:mm:ss');
+      },
+    },
+    {
+      title: '操作',
       render: (_, userDto) => (
         <>
           <Button
@@ -144,52 +134,26 @@ export default function UserPage() {
             type="link"
             size="small"
             onClick={async () => {
-              RoleController.list().then((roles) => {
-                if (roles && roles.length > 0) {
-                  setUserRoleOptions(
-                    roles.map((role) => {
-                      return {
-                        label: role.roleName,
-                        value: role.roleId,
-                      };
-                    }),
-                  );
-                }
-              });
+              fetchRoleResource();
               const currentUser = await UserController.detail(userDto.userId);
               setCurrentUser(currentUser);
-              setCurrenUserRoleIds(
-                currentUser.roles.map((role) => role.roleId),
-              );
+              setCurrenUserRoleIds(currentUser.roles.map(role => role.roleId));
               userForm.setFieldsValue(userDto);
               setModalVisible(true);
             }}
           >
             编辑
           </Button>
-          {UserStatus[userDto.status as keyof typeof UserStatus] ===
-          UserStatus.ENABLE ? (
-            <Button
-              type="link"
-              size="small"
-              onClick={() => handleUserDisable(userDto.userId)}
-            >
+          {UserStatusLabels.ENABLE.name === userDto.status ? (
+            <Button type="link" size="small" onClick={() => handleUserDisable(userDto.userId)}>
               停用
             </Button>
           ) : (
-            <Button
-              type="link"
-              size="small"
-              onClick={() => handleUserEnable(userDto.userId)}
-            >
+            <Button type="link" size="small" onClick={() => handleUserEnable(userDto.userId)}>
               启用
             </Button>
           )}
-          <Button
-            type="link"
-            size="small"
-            onClick={() => handleUserDelete(userDto.userId)}
-          >
+          <Button type="link" size="small" onClick={() => handleUserDelete(userDto.userId)}>
             删除
           </Button>
         </>
@@ -219,19 +183,19 @@ export default function UserPage() {
     if (!currentUser) {
       return [];
     }
-    const roleMenuList = currentUser.resources.map((resourceDto) => ({
+    const roleMenuList = currentUser.resources.map(resourceDto => ({
       title: resourceDto.resourceName,
       key: resourceDto.resourceId,
       parentId: resourceDto.parentResourceId,
     }));
-    return treeDataTranslate(roleMenuList, "key", "parentId");
+    return treeDataTranslate(roleMenuList, 'key', 'parentId');
   }, [currentUser]);
 
   const handleSubmit = () => {
-    userForm.validateFields().then(async (userDTO) => {
+    userForm.validateFields().then(async userDTO => {
       const user = {
         ...userDTO,
-        roles: currenUserRoleIds.map((roleId) => {
+        roles: currenUserRoleIds.map(roleId => {
           return {
             roleId,
           } as RoleDTO;
@@ -284,31 +248,9 @@ export default function UserPage() {
     setCurrenUserRoleIds(value);
   };
 
-  const userStatusOption = [
-    {
-      value: "ENABLE",
-      label: "启用",
-    },
-    {
-      value: "DISABLE",
-      label: "停用",
-    },
-  ];
+  const userStatusOption = enumToOptions(UserStatusLabels);
 
-  const userGenderOption = [
-    {
-      value: "MALE",
-      label: "男",
-    },
-    {
-      value: "FEMALE",
-      label: "女",
-    },
-    {
-      value: "NONE",
-      label: "未知",
-    },
-  ];
+  const userGenderOption = enumToOptions(UserGenderLabels);
 
   return (
     <>
@@ -342,12 +284,7 @@ export default function UserPage() {
             </Col>
           </Row>
           <Space>
-            <Button
-              type="primary"
-              htmlType="submit"
-              icon={<SearchOutlined />}
-              onClick={reloadData}
-            >
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />} onClick={reloadData}>
               查询
             </Button>
             <Button
@@ -367,6 +304,7 @@ export default function UserPage() {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
+            fetchRoleResource();
             setCurrentUser(undefined);
             setModalVisible(true);
             userForm.resetFields();
@@ -378,7 +316,7 @@ export default function UserPage() {
         <Table
           dataSource={users}
           columns={columns}
-          rowKey={(record) => record.userId}
+          rowKey={record => record.userId}
           loading={loading}
           pagination={{
             total,
@@ -390,57 +328,26 @@ export default function UserPage() {
       </Box>
 
       {/*====> 弹窗 begin*/}
-      <Modal
-        title={currentUser ? "编辑用户" : "创建用户"}
-        open={modalVisible}
-        onOk={handleSubmit}
-        onCancel={handleCancel}
-        footer={null}
-      >
+      <Modal title={currentUser ? '编辑用户' : '创建用户'} open={modalVisible} onOk={handleSubmit} onCancel={handleCancel} footer={null}>
         <Form form={userForm} layout="vertical" name="deviceForm">
-          <Form.Item
-            name="name"
-            label="姓名"
-            rules={[{ required: true, message: "请输入姓名" }]}
-          >
+          <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>
             <Input placeholder="请输入姓名" />
           </Form.Item>
-          <Form.Item
-            name="phonenumber"
-            label="电话"
-            rules={[{ required: true, message: "请输入电话" }]}
-          >
+          <Form.Item name="phonenumber" label="电话" rules={[{ required: true, message: '请输入电话' }]}>
             <Input placeholder="请输入电话" />
           </Form.Item>
-          <Form.Item
-            name="email"
-            label="邮箱"
-            rules={[{ required: false, message: "请输入邮箱" }]}
-          >
+          <Form.Item name="email" label="邮箱" rules={[{ required: false, message: '请输入邮箱' }]}>
             <Input placeholder="例如: admin@qq.com" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
-            <Select
-              placeholder="请选择性别"
-              options={userGenderOption}
-            ></Select>
+            <Select placeholder="请选择性别" options={userGenderOption}></Select>
           </Form.Item>
           <Form.Item label="角色">
-            <Select
-              mode="multiple"
-              allowClear
-              placeholder="添加角色"
-              onChange={handleUserRoleChange}
-              value={currenUserRoleIds}
-              options={userRoleOptions}
-            />
+            <Select mode="multiple" allowClear placeholder="添加角色" onChange={handleUserRoleChange} value={currenUserRoleIds} options={userRoleOptions} />
           </Form.Item>
           {currentUser && (
             <Form.Item name="status" label="状态">
-              <Select
-                placeholder="请选择状态"
-                options={userStatusOption}
-              ></Select>
+              <Select placeholder="请选择状态" options={userStatusOption}></Select>
             </Form.Item>
           )}
           <div className="text-right">
@@ -448,12 +355,7 @@ export default function UserPage() {
               <Button icon={<CloseOutlined />} onClick={handleCancel}>
                 取消
               </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                icon={<CheckOutlined />}
-                onClick={handleSubmit}
-              >
+              <Button type="primary" htmlType="submit" icon={<CheckOutlined />} onClick={handleSubmit}>
                 确认
               </Button>
             </Space>
@@ -462,7 +364,7 @@ export default function UserPage() {
       </Modal>
 
       <Modal
-        title={"用户详情"}
+        title={'用户详情'}
         open={modalDetailVisible}
         onCancel={() => {
           setModalDetailVisible(false);
@@ -474,16 +376,12 @@ export default function UserPage() {
             <Form.Item label="姓名">{currentUser?.name}</Form.Item>
             <Form.Item label="邮箱">{currentUser?.email}</Form.Item>
             <Form.Item label="电话">{currentUser?.phonenumber}</Form.Item>
-            <Form.Item label="上次登录时间">
-              {currentUser?.loginDate
-                ? dayjs(currentUser?.loginDate).format("YYYY-MM-DD HH:mm:ss")
-                : ""}
-            </Form.Item>
+            <Form.Item label="上次登录时间">{currentUser?.loginDate ? dayjs(currentUser?.loginDate).format('YYYY-MM-DD HH:mm:ss') : ''}</Form.Item>
             <Form.Item label="性别">
-              <UserGenderTag genderStr={currentUser?.gender}></UserGenderTag>
+              <UserGenderTag userGender={currentUser?.gender}></UserGenderTag>
             </Form.Item>
             <Form.Item label="状态">
-              <UserStatusTag statusStr={currentUser?.status}></UserStatusTag>
+              <UserStatusTag userStatus={currentUser?.status}></UserStatusTag>
             </Form.Item>
 
             <Form.Item label="角色">

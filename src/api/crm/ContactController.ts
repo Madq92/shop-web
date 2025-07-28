@@ -86,6 +86,7 @@ export const ContactStatusEnumLabels: Record<ContactStatusEnum, string> = {
 export type ContactDTO = {
   contactId: string;
   partnerOrgId: string;
+  partnerOrgName: string;
   name: string;
   title: string;
   phone: string;

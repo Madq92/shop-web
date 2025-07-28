@@ -44,6 +44,11 @@ export default function ContactPage() {
       dataIndex: 'email',
       key: 'email',
     },
+    {
+      title: '机构名称',
+      dataIndex: 'partnerOrgName',
+      key: 'partnerOrgName',
+    },
     // {
     //   title: "默认联系人",
     //   dataIndex: "defaultFlag",
@@ -226,6 +231,10 @@ export default function ContactPage() {
         <Form form={contactForm} layout="vertical" name="deviceForm">
           <Form.Item name="name" label="昵称" rules={[{ required: true, message: '请输入昵称' }]}>
             <Input placeholder="请输入昵称" />
+          </Form.Item>
+
+          <Form.Item name="partnerOrgId" label="合作机构">
+            <DebounceSelect fetchOptions={fetchUserList} debounceTimeout={500} initLoad={true} />
           </Form.Item>
 
           <Form.Item name="title" label="职位">

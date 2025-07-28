@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const router = useRouter();
-  router.push('/sys/user');
+  router.push('/prod/spu');
   return (
     <div className="grid gap-5 w-full md:w-[1000px] mx-auto">
-      <Link href={'/sys/user'}>home</Link>
+      <Link href={'/prod/spu'}>home</Link>
     </div>
   );
 }

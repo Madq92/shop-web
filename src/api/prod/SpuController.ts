@@ -1,14 +1,14 @@
-import { BaseController } from "@/api/BaseController";
-import { PageDataType } from "@/common/http/types";
-import { DictDTO } from "./DictController";
-import { PageReq } from "@/api/generic";
+import { BaseController } from '@/api/BaseController';
+import { PageDataType } from '@/common/http/types';
+import { DictDTO } from './DictController';
+import { PageReq } from '@/api/generic';
 
 export default class SpuController extends BaseController {
   /**
    * 商品分页查询
    */
   static page(req: SpuQueryReq) {
-    return super.GET<PageDataType<SpuDTO>>("/spu", req);
+    return super.GET<PageDataType<SpuDTO>>('/spu', req);
   }
 
   /**
@@ -22,7 +22,7 @@ export default class SpuController extends BaseController {
    * 商品创建
    */
   static create(spuDTO: SpuDTO) {
-    return super.POST<string>("/spu", spuDTO);
+    return super.POST<string>('/spu', spuDTO);
   }
 
   /**
@@ -46,13 +46,13 @@ export type SpuQueryReq = PageReq & {
 };
 
 export enum SpuTypeEnum {
-  SINGLE = "SINGLE",
-  MULTI = "MULTI",
+  SINGLE = 'SINGLE',
+  MULTI = 'MULTI',
 }
 
 export enum ProdStatusEnum {
-  ENABLE = "ENABLE",
-  DISABLE = "DISABLE",
+  ENABLE = 'ENABLE',
+  DISABLE = 'DISABLE',
 }
 
 export type SkuDTO = {
@@ -77,6 +77,8 @@ export type SpuDTO = {
   type: string;
   unitId: string;
   unitName: string;
+  weightUnitId: string;
+  weightUnitName: string;
   categoryId: string;
   categoryName: string;
   parentCategoryId: string;

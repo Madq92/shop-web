@@ -30,7 +30,7 @@ export const enumToOptions = <T extends Record<string, string | TagLabel>>(
 // };
 export const yesOrNoOpion = enumToOptions(YesOrNoEnumLabels);
 
-export type TagLabel = { label: string; color: string; name: string };
+export type TagLabel = { label: string; color: string; name: string | number };
 
 /**
  * 字典数据类型

@@ -1,8 +1,13 @@
 export type YesOrNoEnum = 'Y' | 'N';
+export type StatusEnum = 'ENABLE' | 'DISABLE';
 
 export const YesOrNoEnumLabels: Record<YesOrNoEnum, string> = {
   Y: '是',
   N: '否',
+};
+export const StatusLabels: Record<StatusEnum, string> = {
+  ENABLE: '启用',
+  DISABLE: '停用',
 };
 
 export const enumToOptions = <T extends Record<string, string | TagLabel>>(
@@ -17,18 +22,8 @@ export const enumToOptions = <T extends Record<string, string | TagLabel>>(
   })) as Array<{ value: keyof T; label: string }>;
 };
 
-// export const enumOption = <T extends Record<string, string>>(
-//   enumLabels: T,
-// ): Array<{
-//   value: keyof T;
-//   label: string;
-// }> => {
-//   return Object.entries(enumLabels).map(([value, label]) => ({
-//     value,
-//     label,
-//   })) as Array<{ value: keyof T; label: string }>;
-// };
 export const yesOrNoOpion = enumToOptions(YesOrNoEnumLabels);
+export const statusOpion = enumToOptions(StatusLabels);
 
 export type TagLabel = { label: string; color: string; name: string | number };
 

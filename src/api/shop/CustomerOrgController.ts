@@ -19,6 +19,10 @@ export default class CustomerOrgController extends BaseController {
   static edit(customerOrgId: string, customerOrg: CustomerOrgDTO) {
     return super.PUT<boolean>(`/customer-org/${customerOrgId}`, customerOrg);
   }
+
+  static delete(customerOrgId: string) {
+    return super.DELETE<boolean>(`/customer-org/${customerOrgId}`);
+  }
 }
 
 export type CustomerOrgType = 'SUPPLIER' | 'CUSTOMER' | 'LOGISTICS' | 'BANK' | 'OTHER';
@@ -28,11 +32,6 @@ export const CustomerOrgTypeLabels: Record<CustomerOrgType, TagLabel> = {
   LOGISTICS: { label: '物流', color: 'purple', name: 'LOGISTICS' },
   BANK: { label: '银行', color: 'purple', name: 'BANK' },
   OTHER: { label: '其他', color: 'purple', name: 'OTHER' },
-};
-
-export const CustomerOrgStatusLabels: Record<StatusEnum, TagLabel> = {
-  ENABLE: { label: '启用', color: 'blue', name: 'ENABLE' },
-  DISABLE: { label: '禁用', color: 'red', name: 'DISABLE' },
 };
 
 export type CustomerOrgDTO = {

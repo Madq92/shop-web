@@ -12,7 +12,7 @@ import CustomerOrgController, { CustomerOrgPageReq } from '@/api/shop/CustomerOr
 
 const userStatusOption = enumToOptions(UserStatusLabels);
 
-export default function ContactPage() {
+export default function CustomerPage() {
   const [contactList, setContactList] = useState<CustomerDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [customerForm] = Form.useForm<CustomerDTO>();
@@ -167,7 +167,7 @@ export default function ContactPage() {
               </Form.Item>
             </Col>
             <Col span={6}>
-              <Form.Item name="customerOrgId" label="机构">
+              <Form.Item name="customerOrgId" label="组织机构">
                 <DebounceSelect fetchOptions={fetchCustomerOrgList} debounceTimeout={500} initLoad={true} />
               </Form.Item>
             </Col>
@@ -233,7 +233,7 @@ export default function ContactPage() {
             <Input placeholder="请输入昵称" />
           </Form.Item>
 
-          <Form.Item name="partnerOrgId" label="合作机构">
+          <Form.Item name="customerOrgId" label="组织机构">
             <DebounceSelect fetchOptions={fetchCustomerOrgList} debounceTimeout={500} initLoad={true} />
           </Form.Item>
 

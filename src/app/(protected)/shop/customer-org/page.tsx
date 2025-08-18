@@ -4,32 +4,32 @@ import { useEffect, useState } from 'react';
 import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag } from 'antd';
 import Box from '@/components/box';
 import { CheckOutlined, CloseOutlined, PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
-import ContactController from '@/api/crm/ContactController';
-import PartnerOrgController, { PartnerOrgDTO, PartnerOrgQueryReq, PartnerOrgStatusEnumLabels, PartnerOrgTypeEnumLabels } from '@/api/crm/PartnerOrgController';
-import { enumToOptions } from '@/api/types';
+import { enumToOptions, StatusLabels } from '@/api/types';
+import CustomerOrgController, { CustomerOrgDTO, CustomerOrgPageReq } from '@/api/shop/CustomerOrgController';
+import { PartnerOrgTypeEnumLabels } from '@/api/crm/PartnerOrgController';
 
 const typeOption = enumToOptions(PartnerOrgTypeEnumLabels);
-const statusOption = enumToOptions(PartnerOrgStatusEnumLabels);
+const statusOption = enumToOptions(StatusLabels);
 
-export default function PartnerOrgPage() {
-  const [modelList, setModelList] = useState<PartnerOrgDTO[]>([]);
+export default function CustomerOrgPage() {
+  const [modelList, setModelList] = useState<CustomerOrgDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [modelForm] = Form.useForm<PartnerOrgDTO>();
+  const [modelForm] = Form.useForm<CustomerOrgDTO>();
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [currentModel, setCurrentModel] = useState<PartnerOrgDTO>();
-  const [queryForm] = Form.useForm<PartnerOrgQueryReq>();
+  const [currentModel, setCurrentModel] = useState<CustomerOrgDTO>();
+  const [queryForm] = Form.useForm<CustomerOrgPageReq>();
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
-  const columns: TableProps<PartnerOrgDTO>['columns'] = [
+  const columns: TableProps<CustomerOrgDTO>['columns'] = [
     {
-      title: '合作机构简称',
+      title: '组织机构简称',
       dataIndex: 'shortName',
       key: 'shortName',
     },
     {
-      title: '合作机构名称',
+      title: '组织机构名称',
       dataIndex: 'name',
       key: 'name',
     },
@@ -47,23 +47,23 @@ export default function PartnerOrgPage() {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (_, partnerOrgDTO) => <Tag color={partnerOrgDTO.status === 'ENABLE' ? 'green' : 'gray'}>{PartnerOrgStatusEnumLabels[partnerOrgDTO.status]}</Tag>,
+      render: (_, CustomerOrgDTO) => <Tag color={CustomerOrgDTO.status === 'ENABLE' ? 'green' : 'gray'}>{StatusLabels[CustomerOrgDTO.status]}</Tag>,
     },
     {
       title: '操作',
-      render: (_, partnerOrgDTO) => (
+      render: (_, customerOrgDTO) => (
         <>
-          <Button type="link" size="small" onClick={() => handleDetail(partnerOrgDTO)}>
+          <Button type="link" size="small" onClick={() => handleDetail(customerOrgDTO)}>
             详情
           </Button>
-          <Button type="link" size="small" onClick={() => handleEdit(partnerOrgDTO)}>
+          <Button type="link" size="small" onClick={() => handleEdit(customerOrgDTO)}>
             编辑
           </Button>
           <Button
             type="link"
             size="small"
             onClick={async () => {
-              await ContactController.delete(partnerOrgDTO.partnerOrgId);
+              await CustomerOrgController.delete(customerOrgDTO.customerOrgId);
               doQuery();
             }}
           >
@@ -77,7 +77,7 @@ export default function PartnerOrgPage() {
   const doQuery = async (currentPage = pageNum, currentPageSize = pageSize) => {
     setLoading(true);
     const queryParam = queryForm.getFieldsValue();
-    const result = await PartnerOrgController.page({
+    const result = await CustomerOrgController.page({
       ...queryParam,
       pageNum: currentPage,
       pageSize: currentPageSize,
@@ -94,14 +94,14 @@ export default function PartnerOrgPage() {
     setModalVisible(true);
   };
 
-  const handleEdit = async (partnerOrgDTO: PartnerOrgDTO) => {
-    setCurrentModel(partnerOrgDTO);
-    modelForm.setFieldsValue(partnerOrgDTO);
+  const handleEdit = async (CustomerOrgDTO: CustomerOrgDTO) => {
+    setCurrentModel(CustomerOrgDTO);
+    modelForm.setFieldsValue(CustomerOrgDTO);
     setModalVisible(true);
   };
 
-  function handleDetail(partnerOrgDTO: PartnerOrgDTO) {
-    console.log('handleDetail', partnerOrgDTO);
+  function handleDetail(CustomerOrgDTO: CustomerOrgDTO) {
+    console.log('handleDetail', CustomerOrgDTO);
   }
 
   useEffect(() => {
@@ -113,10 +113,10 @@ export default function PartnerOrgPage() {
     modelForm.validateFields().then(async dto => {
       if (currentModel) {
         // 编辑
-        await PartnerOrgController.edit(currentModel.partnerOrgId, dto);
+        await CustomerOrgController.edit(currentModel.customerOrgId, dto);
       } else {
         // 创建
-        await PartnerOrgController.create(dto);
+        await CustomerOrgController.create(dto);
       }
       await doQuery();
       setModalVisible(false);
@@ -134,8 +134,8 @@ export default function PartnerOrgPage() {
         <Form form={queryForm} name="advanced_search">
           <Row gutter={24}>
             <Col span={6}>
-              <Form.Item name="name" label="合作机构名称">
-                <Input placeholder="请输入合作机构名称" />
+              <Form.Item name="name" label="组织机构名称">
+                <Input placeholder="请输入组织机构名称" />
               </Form.Item>
             </Col>
             <Col span={6}>
@@ -169,7 +169,7 @@ export default function PartnerOrgPage() {
         <Table
           dataSource={modelList}
           columns={columns}
-          rowKey={record => record.partnerOrgId}
+          rowKey={record => record.customerOrgId}
           loading={loading}
           pagination={{
             total,
@@ -191,12 +191,12 @@ export default function PartnerOrgPage() {
         footer={null}
       >
         <Form form={modelForm} layout="vertical" name="deviceForm">
-          <Form.Item name="name" label="合作机构名称" rules={[{ required: true, message: '合作机构名称' }]}>
-            <Input placeholder="请输入合作机构名称" />
+          <Form.Item name="name" label="组织机构名称" rules={[{ required: true, message: '组织机构名称' }]}>
+            <Input placeholder="请输入组织机构名称" />
           </Form.Item>
 
-          <Form.Item name="shortName" label="合作机构简称" rules={[{ required: true, message: '合作机构简称' }]}>
-            <Input placeholder="请输入合作机构简称" />
+          <Form.Item name="shortName" label="组织机构简称" rules={[{ required: true, message: '组织机构简称' }]}>
+            <Input placeholder="请输入组织机构简称" />
           </Form.Item>
           <Form.Item name="type" label="类型">
             <Select options={typeOption}></Select>

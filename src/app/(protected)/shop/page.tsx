@@ -1,35 +1,35 @@
 'use client';
 
 import { Separator } from '@/components/ui/separator';
-// import { Bell, Palette, PanelTop, PocketKnife, User } from 'lucide-react';
-//
-// const sidebarNavItems = [
-//   {
-//     title: 'Profile',
-//     icon: <User size={18} />,
-//     href: '/settings',
-//   },
-//   {
-//     title: 'Account',
-//     icon: <PocketKnife size={18} />,
-//     href: '/settings/account',
-//   },
-//   {
-//     title: 'Appearance',
-//     icon: <Palette size={18} />,
-//     href: '/settings/appearance',
-//   },
-//   {
-//     title: 'Notifications',
-//     icon: <Bell size={18} />,
-//     href: '/settings/notifications',
-//   },
-//   {
-//     title: 'Display',
-//     icon: <PanelTop size={18} />,
-//     href: '/settings/display',
-//   },
-// ];
+import { Bell, Palette, PanelTop, PocketKnife, User } from 'lucide-react';
+
+const sidebarNavItems = [
+  {
+    title: 'Profile',
+    icon: <User size={18} />,
+    href: '/shop',
+  },
+  {
+    title: 'Account',
+    icon: <PocketKnife size={18} />,
+    href: '/shop/account',
+  },
+  {
+    title: 'Appearance',
+    icon: <Palette size={18} />,
+    href: '/shop/appearance',
+  },
+  {
+    title: 'Notifications',
+    icon: <Bell size={18} />,
+    href: '/shop/notifications',
+  },
+  {
+    title: 'Display',
+    icon: <PanelTop size={18} />,
+    href: '/shop/display',
+  },
+];
 export default function ShopPage() {
   return (
     <>

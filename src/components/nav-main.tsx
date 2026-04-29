@@ -12,7 +12,7 @@ import {
   SidebarMenuSubItem
 } from '@/components/ui/sidebar';
 import * as React from 'react';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { NavMainProps, useMenuData } from '@/hooks/use-menu-data';
@@ -20,9 +20,28 @@ import { NavMainProps, useMenuData } from '@/hooks/use-menu-data';
 function NavMain() {
   const pathname = usePathname();
   const menuData = useMenuData();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const renderMenuItem = (item: NavMainProps) => {
     const hasItems = item.items && item.items.length > 0;
+
+    if (!mounted) {
+      // SSR: render a non-interactive placeholder to match hydration
+      return (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild isActive={pathname === item.url}>
+            <Link href={item.url}>
+              {item.icon && <item.icon />}
+              <span>{item.title}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
 
     if (hasItems) {
       // 如果有子项，可折叠

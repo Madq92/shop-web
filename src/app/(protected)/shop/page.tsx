@@ -3,6 +3,7 @@
 import { Separator } from '@/components/ui/separator';
 import { Bell, Palette, PanelTop, PocketKnife, User } from 'lucide-react';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sidebarNavItems = [
   {
     title: 'Profile',

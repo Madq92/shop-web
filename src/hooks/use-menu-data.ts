@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Settings2 } from "lucide-react";
 import { getCurrentUserInfo, treeDataTranslate } from "@/common/utils";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
 import { useRouter } from "next/navigation";
+import { UserDTO } from "@/api/sys/UserController";
 
 export interface NavMainProps {
   title: string;
@@ -63,14 +64,16 @@ const defaultNavMain = [
 ];
 
 export function useMenuData() {
-  const user = getCurrentUserInfo();
   const router = useRouter();
+  const [user, setUser] = useState<UserDTO | null>(null);
 
   useEffect(() => {
-    if (null == user) {
+    const u = getCurrentUserInfo();
+    setUser(u);
+    if (null == u) {
       router.push("/login");
     }
-  }, [user, router]);
+  }, [router]);
 
   return useMemo<NavMainProps[]>(() => {
     if (null == user) {
@@ -88,30 +91,21 @@ export function useMenuData() {
       "parentResourceId",
     );
 
-    function getIconComponent(iconName: string) {
-      if (null == iconName || iconName.trim().length === 0) {
-        return null;
-      }
-      return React.createElement(DynamicIcon, { name: iconName as IconName });
-    }
-
     return menuResourcesTree.map((item) => {
       return {
         title: item.resourceName,
         url: item.url || "#",
         icon: () => getIconComponent(item.icon),
         items: item.children?.map((child) => {
-          const childIconName = child.icon as IconName;
           return {
             title: child.resourceName,
             url: child.url || "#",
-            icon: () => getIconComponent(childIconName),
+            icon: () => getIconComponent(child.icon as IconName),
             items: child.children?.map((grandchild) => {
-              const grandchildIconName = grandchild.icon as IconName;
               return {
                 title: grandchild.resourceName,
                 url: grandchild.url || "#",
-                icon: () => getIconComponent(grandchildIconName),
+                icon: () => getIconComponent(grandchild.icon as IconName),
               };
             }),
           };
@@ -119,4 +113,11 @@ export function useMenuData() {
       } as NavMainProps;
     });
   }, [user]);
+}
+
+function getIconComponent(iconName: string) {
+  if (null == iconName || iconName.trim().length === 0) {
+    return null;
+  }
+  return React.createElement(DynamicIcon, { name: iconName as IconName });
 }

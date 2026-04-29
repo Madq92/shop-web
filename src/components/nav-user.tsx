@@ -59,6 +59,8 @@ function NavUser() {
     setTokenName(null);
     setTokenValue(null);
     setCurrentUserInfo(null);
+    document.cookie = "tokenValue=; path=/; max-age=0";
+    document.cookie = "tokenName=; path=/; max-age=0";
     router.push("/login");
   };
   return (

@@ -28,6 +28,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           setTokenValue(userLoginInfoResp.tokenValue);
           setTokenName(userLoginInfoResp.tokenName);
 
+          document.cookie = `tokenValue=${userLoginInfoResp.tokenValue}; path=/; max-age=86400; SameSite=Lax`;
+          document.cookie = `tokenName=${userLoginInfoResp.tokenName}; path=/; max-age=86400; SameSite=Lax`;
+
           setCurrentUserInfo(userLoginInfoResp.user);
           router.push('/');
         } else {

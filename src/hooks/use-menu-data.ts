@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Settings2 } from "lucide-react";
 import { getCurrentUserInfo, treeDataTranslate } from "@/common/utils";
 import { DynamicIcon, IconName } from "lucide-react/dynamic";
@@ -65,9 +65,13 @@ const defaultNavMain = [
 export function useMenuData() {
   const user = getCurrentUserInfo();
   const router = useRouter();
-  if (null == user) {
-    router.push("/login");
-  }
+
+  useEffect(() => {
+    if (null == user) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
   return useMemo<NavMainProps[]>(() => {
     if (null == user) {
       return defaultNavMain;

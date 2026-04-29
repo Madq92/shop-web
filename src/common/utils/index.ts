@@ -231,6 +231,7 @@ export function findItemFromList(list: ANY_OBJECT[], id: string | number | undef
  * @param {*} value 要保存的数据
  */
 export function setObjectToSessionStorage(key: string, value: ANY_OBJECT) {
+  if (typeof window === "undefined") return false;
   if (key == null || key === '') return false;
   if (value == null) {
     window.sessionStorage.removeItem(key);
@@ -250,6 +251,7 @@ export function setObjectToSessionStorage(key: string, value: ANY_OBJECT) {
  * @param {*} defaultValue 默认值
  */
 export function getObjectFromSessionStorage(key: string, defaultValue: ANY_OBJECT): ANY_OBJECT {
+  if (typeof window === "undefined") return defaultValue;
   let jsonObj: ANY_OBJECT;
   try {
     const val: string | null = sessionStorage.getItem(key);
@@ -298,10 +300,12 @@ export function encrypt(value: string): string | null {
 }
 
 export function getTokenValue() {
+  if (typeof window === "undefined") return null;
   return sessionStorage.getItem('tokenValue');
 }
 
 export function setTokenValue(token: string | null | undefined) {
+  if (typeof window === "undefined") return;
   if (token == null || token === '') {
     sessionStorage.removeItem('tokenValue');
   } else {
@@ -310,10 +314,12 @@ export function setTokenValue(token: string | null | undefined) {
 }
 
 export function getTokenName() {
+  if (typeof window === "undefined") return null;
   return sessionStorage.getItem('tokenName');
 }
 
 export function setTokenName(token: string | null | undefined) {
+  if (typeof window === "undefined") return;
   if (token == null || token === '') {
     sessionStorage.removeItem('tokenName');
   } else {
@@ -322,12 +328,14 @@ export function setTokenName(token: string | null | undefined) {
 }
 
 export function getCurrentUserInfo() {
+  if (typeof window === "undefined") return null;
   const userInfoString = sessionStorage.getItem('currentUser');
   if (userInfoString == null) return null;
   return JSON.parse(userInfoString) as UserDTO;
 }
 
 export function setCurrentUserInfo(user: UserDTO | null) {
+  if (typeof window === "undefined") return;
   if (user == null) {
     sessionStorage.removeItem('currentUser');
   } else {

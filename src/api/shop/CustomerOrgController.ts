@@ -1,6 +1,6 @@
 import { BaseController } from '@/api/BaseController';
 import { PageDataType } from '@/common/http/types';
-import { PageReq } from '@/api/generic';
+import { PageReq } from '@/common/http/types';
 import { StatusEnum, TagLabel } from '@/api/types';
 
 export default class CustomerOrgController extends BaseController {

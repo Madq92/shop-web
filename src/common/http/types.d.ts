@@ -36,3 +36,8 @@ export type PageDataType<T> = {
   size: number;
   current: number;
 };
+
+export type PageReq = {
+  pageSize: number;
+  pageNum: number;
+};

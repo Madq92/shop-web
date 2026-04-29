@@ -1,6 +1,6 @@
 import { BaseController } from '@/api/BaseController';
 import { PageDataType } from '@/common/http/types';
-import { PageReq } from '@/api/generic';
+import { PageReq } from '@/common/http/types';
 import { YesOrNoEnum } from '@/api/types';
 
 export default class ContactController extends BaseController {

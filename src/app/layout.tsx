@@ -1,9 +1,6 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "@ant-design/v5-patch-for-react-19";
-import NoSsr from "@/components/no-ssr";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,6 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadata: Metadata = {
+  title: {
+    template: "%s | Shop Admin",
+    default: "Shop Admin",
+  },
+  description: "Shop management admin panel",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -23,7 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NoSsr>{children}</NoSsr>
+        {children}
       </body>
     </html>
   );

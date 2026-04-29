@@ -2,7 +2,7 @@ import { BaseController } from '@/api/BaseController';
 import { PageDataType } from '@/common/http/types';
 import { RoleDTO } from '@/api/sys/RoleController';
 import { ResourceDTO } from '@/api/sys/ResourceController';
-import { PageReq } from '@/api/generic';
+import { PageReq } from '@/common/http/types';
 import { TagLabel } from '@/api/types';
 
 export default class UserController extends BaseController {

@@ -1,28 +1,149 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Descriptions, Form, Modal, Skeleton, Table, Tag } from 'antd';
-import OrderController, { OrderDTO, OrderStatusLabels, OrderTypeLabels } from '@/api/oms/OrderController';
+import { Button, Descriptions, Form, InputNumber, Modal, Skeleton, Space, Table, TableProps, Tag, message } from 'antd';
+import OrderController, { OrderDTO, OrderDetailModel, OrderStatusLabels, OrderTypeLabels } from '@/api/oms/OrderController';
 import { YesOrNoEnumLabels } from '@/api/types';
 
 interface OrderDetailModalProps {
   orderId: string | null;
   open: boolean;
   onClose: () => void;
+  editable?: boolean;
 }
 
-export default function OrderDetailModal({ orderId, open, onClose }: OrderDetailModalProps) {
+export default function OrderDetailModal({ orderId, open, onClose, editable = false }: OrderDetailModalProps) {
   const [order, setOrder] = useState<OrderDTO | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{ qty: number; price: number }>({ qty: 0, price: 0 });
+  const [saving, setSaving] = useState(false);
+
+  const loadDetail = () => {
+    if (!orderId) return;
+    setLoading(true);
+    OrderController.detail(orderId)
+      .then(setOrder)
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     if (open && orderId) {
-      setLoading(true);
-      OrderController.detail(orderId).then((res) => {
-        setOrder(res);
-      }).finally(() => setLoading(false));
+      loadDetail();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, orderId]);
+
+  const startEdit = (record: OrderDetailModel) => {
+    const key = record.detailId || record.skuId || '';
+    setEditingKey(key);
+    setEditValues({
+      qty: record.qty ?? 0,
+      price: record.price ?? 0,
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingKey(null);
+  };
+
+  const saveEdit = async (record: OrderDetailModel) => {
+    const detailId = record.detailId;
+    if (!detailId || !orderId) return;
+    setSaving(true);
+    try {
+      await OrderController.editDetail(orderId, detailId, {
+        ...record,
+        qty: editValues.qty,
+        price: editValues.price,
+      });
+      message.success('保存成功');
+      setEditingKey(null);
+      loadDetail();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const isEditing = (record: OrderDetailModel) => {
+    const key = record.detailId || record.skuId || '';
+    return key === editingKey;
+  };
+
+  const getRowKey = (record: OrderDetailModel) => record.detailId || record.skuId || '';
+
+  const detailColumns: TableProps<OrderDetailModel>['columns'] = [
+    { title: '商品名称', dataIndex: 'name' },
+    {
+      title: '单价',
+      dataIndex: 'price',
+      render: (_: unknown, record: OrderDetailModel) => {
+        if (isEditing(record)) {
+          return (
+            <InputNumber
+              value={editValues.price}
+              onChange={(v) => setEditValues((prev) => ({ ...prev, price: v ?? 0 }))}
+              min={0}
+              style={{ width: 100 }}
+            />
+          );
+        }
+        return `¥${((record.price ?? 0) / 100).toFixed(2)}`;
+      },
+    },
+    {
+      title: '数量',
+      dataIndex: 'qty',
+      render: (_: unknown, record: OrderDetailModel) => {
+        if (isEditing(record)) {
+          return (
+            <InputNumber
+              value={editValues.qty}
+              onChange={(v) => setEditValues((prev) => ({ ...prev, qty: v ?? 0 }))}
+              min={1}
+              style={{ width: 80 }}
+            />
+          );
+        }
+        return record.qty;
+      },
+    },
+    {
+      title: '小计',
+      dataIndex: 'amount',
+      render: (_: unknown, record: OrderDetailModel) => {
+        if (isEditing(record)) {
+          return `¥${((editValues.price * editValues.qty) / 100).toFixed(2)}`;
+        }
+        return `¥${((record.amount ?? 0) / 100).toFixed(2)}`;
+      },
+    },
+  ];
+
+  if (editable) {
+    detailColumns.push({
+      title: '操作',
+      render: (_: unknown, record: OrderDetailModel) => {
+        if (isEditing(record)) {
+          return (
+            <Space>
+              <Button type="link" size="small" loading={saving} onClick={() => saveEdit(record)}>
+                保存
+              </Button>
+              <Button type="link" size="small" onClick={cancelEdit}>
+                取消
+              </Button>
+            </Space>
+          );
+        }
+        return (
+          <Button type="link" size="small" disabled={editingKey !== null} onClick={() => startEdit(record)}>
+            编辑
+          </Button>
+        );
+      },
+    });
+  }
 
   return (
     <Modal
@@ -86,15 +207,10 @@ export default function OrderDetailModal({ orderId, open, onClose }: OrderDetail
               <div className="text-sm font-medium mb-3">商品明细</div>
               <Table
                 dataSource={order.orderDetails}
-                rowKey="productId"
+                rowKey={getRowKey}
                 size="small"
                 pagination={false}
-                columns={[
-                  { title: '商品名称', dataIndex: 'productName' },
-                  { title: '单价', dataIndex: 'price', render: (v: number) => `¥${(v / 100).toFixed(2)}` },
-                  { title: '数量', dataIndex: 'quantity' },
-                  { title: '小计', dataIndex: 'subtotal', render: (v: number) => `¥${(v / 100).toFixed(2)}` },
-                ]}
+                columns={detailColumns}
               />
             </>
           )}

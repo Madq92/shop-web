@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Col, Form, Input, Row, Select, Space, Table, TableProps, Tag, message } from 'antd';
+import { useRouter } from 'next/navigation';
+import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag, message } from 'antd';
 import Box from '@/components/box';
 import { PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
 import OrderController, { OrderDTO, OrderPageReq, OrderStatus, OrderStatusLabels } from '@/api/oms/OrderController';
@@ -15,15 +16,17 @@ const orderStatusOptions = enumToOptions(OrderStatusLabels);
 /** 根据 orderStatus 返回可执行的操作类型 */
 function getActions(status?: OrderStatus): string[] {
   switch (status) {
-    case 0: return ['confirm'];
-    case 1: return ['pay', 'cancel'];
-    case 2: return ['deliver', 'close'];
+    case 0: return ['confirm', 'edit', 'delete'];
+    case 1: return ['pay', 'cancel', 'edit'];
+    case 2: return ['deliver', 'close', 'edit'];
     case 3: return ['receive'];
+    case 5: return ['delete'];
     default: return [];
   }
 }
 
 export default function OrderPage() {
+  const router = useRouter();
   const [modelList, setModelList] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [queryForm] = Form.useForm<OrderPageReq>();
@@ -34,6 +37,7 @@ export default function OrderPage() {
   // 弹窗状态
   const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [detailEditable, setDetailEditable] = useState(false);
   const [deliverOrderId, setDeliverOrderId] = useState<string | null>(null);
   const [deliverOpen, setDeliverOpen] = useState(false);
   const [returnOrder, setReturnOrder] = useState<OrderDTO | null>(null);
@@ -68,6 +72,27 @@ export default function OrderPage() {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageNum]);
+
+  const handleDelete = useCallback((orderId: string) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: '删除后不可恢复，确定要删除该订单吗？',
+      okText: '确认删除',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          await OrderController.delete(orderId);
+          message.success('删除成功');
+          doQuery(pageNum);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageNum]);
 
@@ -111,9 +136,14 @@ export default function OrderPage() {
         const actions = getActions(orderDTO.orderStatus);
         return (
           <Space>
-            <Button type="link" size="small" onClick={() => { setDetailOrderId(orderDTO.orderId!); setDetailOpen(true); }}>
+            <Button type="link" size="small" onClick={() => { setDetailOrderId(orderDTO.orderId!); setDetailOpen(true); setDetailEditable(orderDTO.orderStatus === 0 || orderDTO.orderStatus === 1); }}>
               详情
             </Button>
+            {actions.includes('edit') && (
+              <Button type="link" size="small" onClick={() => router.push(`/oms/order-edit?orderId=${orderDTO.orderId}`)}>
+                编辑
+              </Button>
+            )}
             {actions.includes('confirm') && (
               <Button type="link" size="small" onClick={() => handleAction(orderDTO.orderId!, 'confirm')}>
                 确认下单
@@ -147,6 +177,11 @@ export default function OrderPage() {
             {orderDTO.returnId && (
               <Button type="link" size="small" onClick={() => { setReturnOrder(orderDTO); setReturnOpen(true); }}>
                 售后
+              </Button>
+            )}
+            {actions.includes('delete') && (
+              <Button type="link" size="small" danger onClick={() => handleDelete(orderDTO.orderId!)}>
+                删除
               </Button>
             )}
           </Space>
@@ -222,7 +257,7 @@ export default function OrderPage() {
       </Box>
       <Box>
         <Space className="pb-4">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => window.location.href = '/oms/order-create'}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => router.push('/oms/order-create')}>
             创建订单
           </Button>
           <Button type="primary" icon={<SyncOutlined />} onClick={() => doQuery(pageNum)}>
@@ -243,7 +278,7 @@ export default function OrderPage() {
         />
       </Box>
 
-      <OrderDetailModal orderId={detailOrderId} open={detailOpen} onClose={() => { setDetailOpen(false); setDetailOrderId(null); }} />
+      <OrderDetailModal orderId={detailOrderId} open={detailOpen} editable={detailEditable} onClose={() => { setDetailOpen(false); setDetailOrderId(null); }} />
       {deliverOrderId && <DeliverModal orderId={deliverOrderId} open={deliverOpen} onClose={() => { setDeliverOpen(false); setDeliverOrderId(null); }} onSuccess={onDeliverSuccess} />}
       {returnOrder && <ReturnModal order={returnOrder} open={returnOpen} onClose={() => { setReturnOpen(false); setReturnOrder(null); }} onSuccess={onReturnSuccess} />}
     </>

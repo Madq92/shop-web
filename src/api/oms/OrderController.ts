@@ -87,6 +87,18 @@ export default class OrderController extends BaseController {
   static receiveReturn(returnId: string): Promise<boolean> {
     return super.PUT<boolean>(`/order/return/${returnId}/receive`);
   }
+
+  // ========== 订单明细 ==========
+
+  /** 创建订单明细项 */
+  static createDetail(orderId: string, detail: OrderDetailModel): Promise<string> {
+    return super.POST<string>(`/order/${orderId}/order-detail`, detail);
+  }
+
+  /** 编辑订单明细项 */
+  static editDetail(orderId: string, detailId: string, detail: OrderDetailModel): Promise<boolean> {
+    return super.PUT<boolean>(`/order/${orderId}/order-detail/${detailId}`, detail);
+  }
 }
 
 /**
@@ -167,6 +179,7 @@ export type OrderAddressModel = {
  * 订单详情模型
  */
 export type OrderDetailModel = {
+  detailId?: string;
   skuId?: string;
   name?: string;
   price?: number;

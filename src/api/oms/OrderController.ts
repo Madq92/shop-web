@@ -154,6 +154,7 @@ export const OrderStatusLabels: Record<OrderStatus, TagLabel> = {
  * 订单地址信息模型
  */
 export type OrderAddressModel = {
+  partnerAddressId?: string;
   receiverName?: string;
   receiverPhone?: string;
   province?: string;
@@ -166,11 +167,11 @@ export type OrderAddressModel = {
  * 订单详情模型
  */
 export type OrderDetailModel = {
-  productId?: string;
-  productName?: string;
+  skuId?: string;
+  name?: string;
   price?: number;
-  quantity?: number;
-  subtotal?: number;
+  qty?: number;
+  amount?: number;
 };
 
 /**

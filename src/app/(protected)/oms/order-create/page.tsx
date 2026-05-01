@@ -1,13 +1,13 @@
 'use client';
 
 import { CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Button, Col, Descriptions, Form, Input, Row, Select, Space, Table, message } from 'antd';
+import { Button, Col, Descriptions, Form, Input, Row, Select, Space, Table, Tag, message } from 'antd';
 import React, { useState } from 'react';
 import Box from '@/components/box';
 import { useRouter } from 'next/navigation';
-import OrderController, { OrderDTO, PayTypeLabels } from '@/api/oms/OrderController';
-import ContactController, { ContactDTO } from '@/api/crm/ContactController';
-import SpuController, { SpuDTO } from '@/api/prod/SpuController';
+import OrderController, { OrderDTO, OrderDetailModel, PayTypeLabels } from '@/api/oms/OrderController';
+import ContactController, { ContactDTO, PartnerAddressDTO } from '@/api/crm/ContactController';
+import SpuController, { SkuDTO, SpuDTO } from '@/api/prod/SpuController';
 import DebounceSelect from '@/components/debounce-select';
 import { enumToOptions } from '@/api/types';
 
@@ -21,6 +21,7 @@ interface CartItem {
   spuId: string;
   skuId: string;
   productName: string;
+  specDesc: string;
   price: number;
   quantity: number;
 }
@@ -32,12 +33,15 @@ export default function OrderCreatePage() {
 
   // 选中的客户
   const [selectedContact, setSelectedContact] = useState<ContactDTO | null>(null);
+  const [addressList, setAddressList] = useState<PartnerAddressDTO[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // SKU 明细
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  // 搜索 SPU/SKU
-  const [spuSearchText, setSpuSearchText] = useState('');
+  // 搜索 SPU
+  const [selectedSpuDetail, setSelectedSpuDetail] = useState<SpuDTO | null>(null);
+  const [selectedSku, setSelectedSku] = useState<SkuDTO | null>(null);
 
   const fetchContactList = async (name: string) => {
     const result = await ContactController.page({ pageNum: 1, pageSize: 50, name: name || undefined });
@@ -51,27 +55,40 @@ export default function OrderCreatePage() {
   const fetchSpuList = async (name: string) => {
     const result = await SpuController.page({ pageNum: 1, pageSize: 20, name: name || undefined });
     return (result.records || []).map(s => ({
-      label: `${s.name} - ¥${((s.skus?.[0]?.sellPrice ?? 0) / 100).toFixed(2)}`,
+      label: s.name,
       value: s.spuId,
       spu: s,
     }));
   };
 
-  const handleAddSku = (spu: SpuDTO) => {
-    const sku = spu.skus?.[0];
-    if (!sku) return;
+  const handleSpuSelected = async (spuId: string) => {
+    setSelectedSku(null);
+    setSelectedSpuDetail(null);
+    try {
+      const detail = await SpuController.detail(spuId);
+      setSelectedSpuDetail(detail);
+    } catch {
+      message.error('获取商品详情失败');
+    }
+  };
+
+  const handleAddSku = () => {
+    if (!selectedSpuDetail || !selectedSku) return;
+    const specDesc = (selectedSku.specs ?? []).map(s => `${s.name}: ${s.type}`).join(' / ')
     setCartItems(prev => [
       ...prev,
       {
-        key: `${spu.spuId}-${Date.now()}`,
-        spuId: spu.spuId,
-        skuId: sku.skuId || '',
-        productName: spu.name,
-        price: (sku.sellPrice ?? 0),
+        key: `${selectedSpuDetail.spuId}-${selectedSku.skuId}-${Date.now()}`,
+        spuId: selectedSpuDetail.spuId,
+        skuId: selectedSku.skuId || '',
+        productName: selectedSpuDetail.name,
+        specDesc,
+        price: (selectedSku.sellPrice ?? 0),
         quantity: 1,
       },
     ]);
-    setSpuSearchText('');
+    setSelectedSpuDetail(null);
+    setSelectedSku(null);
   };
 
   const billAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -84,15 +101,14 @@ export default function OrderCreatePage() {
         ...values,
         customerId: selectedContact?.contactId,
         customerName: selectedContact?.name,
+        orderAddress: selectedAddressId ? { partnerAddressId: selectedAddressId } : undefined,
         orderDetails: cartItems.map(item => ({
-          productId: item.skuId,
-          productName: item.productName,
+          skuId: item.skuId,
+          name: item.productName,
           price: item.price,
-          quantity: item.quantity,
-          subtotal: item.price * item.quantity,
-        })),
-        billAmount,
-        totalAmount: billAmount,
+          qty: item.quantity,
+          amount: item.price * item.quantity,
+        })) as OrderDetailModel[],
       };
       await OrderController.create(orderDTO);
       message.success('创建订单成功');
@@ -104,6 +120,10 @@ export default function OrderCreatePage() {
 
   const cartColumns = [
     { title: '商品名称', dataIndex: 'productName', key: 'productName' },
+    {
+      title: '规格', dataIndex: 'specDesc', key: 'specDesc',
+      render: (v: string) => v || '-',
+    },
     {
       title: '单价', dataIndex: 'price', key: 'price',
       render: (v: number) => `¥${(v / 100).toFixed(2)}`,
@@ -150,7 +170,18 @@ export default function OrderCreatePage() {
             placeholder="搜索并选择客户"
             onChange={(value, option) => {
               const opt = Array.isArray(option) ? option[0] : option;
-              setSelectedContact((opt as unknown as { contact: ContactDTO })?.contact || null);
+              const contact = (opt as unknown as { contact: ContactDTO })?.contact || null;
+              setSelectedContact(contact);
+              if (contact?.contactId) {
+                ContactController.address(contact.contactId).then(addresses => {
+                  setAddressList(addresses || []);
+                  const defaultAddr = (addresses || []).find(a => a.defaultFlag === 'Y');
+                  setSelectedAddressId(defaultAddr?.partnerAddressId || addresses?.[0]?.partnerAddressId || null);
+                }).catch(() => setAddressList([]));
+              } else {
+                setAddressList([]);
+                setSelectedAddressId(null);
+              }
             }}
           />
         </Form.Item>
@@ -167,6 +198,21 @@ export default function OrderCreatePage() {
           </Row>
         )}
 
+        {addressList.length > 0 && (
+          <Form.Item label="收货地址" rules={[{ required: true, message: '请选择收货地址' }]}>
+            <Select
+              placeholder="请选择收货地址"
+              style={{ width: 400 }}
+              value={selectedAddressId}
+              onChange={setSelectedAddressId}
+              options={addressList.map(addr => ({
+                label: `${addr.name} ${addr.phone} - ${addr.provinceName}${addr.cityName}${addr.areaName}${addr.address}`,
+                value: addr.partnerAddressId,
+              }))}
+            />
+          </Form.Item>
+        )}
+
         <Form.Item label="支付方式" name="payType">
           <Select placeholder="请选择支付方式" allowClear options={payTypeOptions} />
         </Form.Item>
@@ -178,20 +224,50 @@ export default function OrderCreatePage() {
         {/* 商品明细 */}
         <div className="text-sm font-medium mb-6">商品明细</div>
 
-        <Form.Item label="添加商品">
-          <Space>
+        <Form.Item label="选择商品">
+          <Space direction="vertical" style={{ width: '100%' }}>
             <DebounceSelect
               fetchOptions={fetchSpuList}
               debounceTimeout={500}
-              placeholder="搜索并选择商品"
+              initLoad
+              placeholder="搜索并选择商品（SPU）"
               style={{ width: 400 }}
-              value={spuSearchText ? undefined : undefined}
-              onChange={(value, option) => {
-                const opt = Array.isArray(option) ? option[0] : option;
-                const spu = (opt as unknown as { spu: SpuDTO })?.spu;
-                if (spu) handleAddSku(spu);
+              onChange={(value) => {
+                if (value) handleSpuSelected(value as unknown as string);
               }}
+              onClear={() => { setSelectedSpuDetail(null); setSelectedSku(null); }}
+              allowClear
             />
+            {selectedSpuDetail && (
+              <div className="flex items-center gap-4">
+                <Select
+                  placeholder="请选择规格（SKU）"
+                  style={{ width: 400 }}
+                  value={selectedSku?.skuId || undefined}
+                  onChange={(skuId) => {
+                    const sku = selectedSpuDetail.skus?.find(s => s.skuId === skuId) || null;
+                    setSelectedSku(sku);
+                  }}
+                  options={(selectedSpuDetail.skus ?? []).map(sku => {
+                    const specDesc = (sku.specs ?? []).map(s => `${s.name}: ${s.type}`).join(' / ');
+                    return {
+                      label: (
+                        <span>
+                          {specDesc || sku.code || '默认'}
+                          <Tag style={{ marginLeft: 8 }}>¥{((sku.sellPrice ?? 0) / 100).toFixed(2)}</Tag>
+                        </span>
+                      ),
+                      text: `${specDesc || sku.code || '默认'} - ¥${((sku.sellPrice ?? 0) / 100).toFixed(2)}`,
+                      value: sku.skuId,
+                    };
+                  })}
+                  optionRender={(option) => option.data.text}
+                />
+                <Button type="primary" disabled={!selectedSku} onClick={handleAddSku}>
+                  添加
+                </Button>
+              </div>
+            )}
           </Space>
         </Form.Item>
 

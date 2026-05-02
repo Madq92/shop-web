@@ -1,6 +1,7 @@
 import { BaseController } from '@/api/BaseController';
 import { PageDataType } from '@/common/http/types';
 import { PageReq } from '@/common/http/types';
+import { PartnerAddressDTO } from '@/api/crm/ContactController';
 
 export default class PartnerOrgController extends BaseController {
   /**
@@ -36,6 +37,28 @@ export default class PartnerOrgController extends BaseController {
    */
   static delete(partnerOrgId: string) {
     return super.DELETE<boolean>(`/partner-org/${partnerOrgId}`);
+  }
+
+  // ========== 地址管理 ==========
+
+  /** 获取公司地址列表 */
+  static address(partnerOrgId: string) {
+    return super.GET<PartnerAddressDTO[]>(`/partner-org/${partnerOrgId}/address`);
+  }
+
+  /** 创建公司地址 */
+  static createAddress(partnerOrgId: string, address: PartnerAddressDTO) {
+    return super.POST<string>(`/partner-org/${partnerOrgId}/address`, address);
+  }
+
+  /** 编辑公司地址 */
+  static updateAddress(partnerOrgId: string, partnerAddressId: string, address: PartnerAddressDTO) {
+    return super.PUT<boolean>(`/partner-org/${partnerOrgId}/address/${partnerAddressId}`, address);
+  }
+
+  /** 删除公司地址 */
+  static deleteAddress(partnerOrgId: string, partnerAddressId: string) {
+    return super.DELETE<boolean>(`/partner-org/${partnerOrgId}/address/${partnerAddressId}`);
   }
 }
 

@@ -9,6 +9,7 @@ import { enumToOptions } from '@/api/types';
 import { UserStatusLabels } from '@/api/sys/UserController';
 import PartnerOrgController, { PartnerOrgQueryReq } from '@/api/crm/PartnerOrgController';
 import DebounceSelect from '@/components/debounce-select';
+import AddressModal from '../components/address-modal';
 
 const userStatusOption = enumToOptions(UserStatusLabels);
 
@@ -22,6 +23,10 @@ export default function ContactPage() {
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+
+  // 地址管理弹窗
+  const [addressEntityId, setAddressEntityId] = useState<string | null>(null);
+  const [addressOpen, setAddressOpen] = useState(false);
 
   const columns: TableProps<ContactDTO>['columns'] = [
     {
@@ -71,6 +76,9 @@ export default function ContactPage() {
         <>
           <Button type="link" size="small" onClick={() => handleEdit(contactDto)}>
             编辑
+          </Button>
+          <Button type="link" size="small" onClick={() => { setAddressEntityId(contactDto.contactId); setAddressOpen(true); }}>
+            地址管理
           </Button>
           <Button
             type="link"
@@ -268,6 +276,8 @@ export default function ContactPage() {
         </Form>
       </Modal>
       {/*====> 弹窗 end*/}
+
+      <AddressModal entityId={addressEntityId} entityType="contact" open={addressOpen} onClose={() => { setAddressOpen(false); setAddressEntityId(null); }} />
     </>
   );
 }

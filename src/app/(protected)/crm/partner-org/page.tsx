@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag } from 'antd';
+import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag, message } from 'antd';
 import Box from '@/components/box';
 import { CheckOutlined, CloseOutlined, PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
-import ContactController from '@/api/crm/ContactController';
 import PartnerOrgController, { PartnerOrgDTO, PartnerOrgQueryReq, PartnerOrgStatusEnumLabels, PartnerOrgTypeEnumLabels } from '@/api/crm/PartnerOrgController';
 import { enumToOptions } from '@/api/types';
+import AddressModal from '../components/address-modal';
 
 const typeOption = enumToOptions(PartnerOrgTypeEnumLabels);
 const statusOption = enumToOptions(PartnerOrgStatusEnumLabels);
@@ -21,6 +21,10 @@ export default function PartnerOrgPage() {
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+
+  // 地址管理弹窗
+  const [addressEntityId, setAddressEntityId] = useState<string | null>(null);
+  const [addressOpen, setAddressOpen] = useState(false);
 
   const columns: TableProps<PartnerOrgDTO>['columns'] = [
     {
@@ -59,12 +63,25 @@ export default function PartnerOrgPage() {
           <Button type="link" size="small" onClick={() => handleEdit(partnerOrgDTO)}>
             编辑
           </Button>
+          <Button type="link" size="small" onClick={() => { setAddressEntityId(partnerOrgDTO.partnerOrgId); setAddressOpen(true); }}>
+            地址管理
+          </Button>
           <Button
             type="link"
             size="small"
-            onClick={async () => {
-              await ContactController.delete(partnerOrgDTO.partnerOrgId);
-              doQuery();
+            onClick={() => {
+              Modal.confirm({
+                title: '确认删除',
+                content: '确定要删除该合作机构吗？',
+                okText: '确认删除',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk: async () => {
+                  await PartnerOrgController.delete(partnerOrgDTO.partnerOrgId);
+                  message.success('删除成功');
+                  doQuery();
+                },
+              });
             }}
           >
             删除
@@ -159,7 +176,7 @@ export default function PartnerOrgPage() {
       <Box>
         <Space className="pb-4">
           <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-            创建联系人
+            创建合作机构
           </Button>
 
           <Button type="primary" icon={<SyncOutlined />} onClick={() => doQuery(pageNum)}>
@@ -181,7 +198,7 @@ export default function PartnerOrgPage() {
       </Box>
       {/*====> 弹窗 begin*/}
       <Modal
-        title={currentModel ? '编辑联系人' : '创建联系人'}
+        title={currentModel ? '编辑合作机构' : '创建合作机构'}
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => {
@@ -246,6 +263,8 @@ export default function PartnerOrgPage() {
         </Form>
       </Modal>
       {/*====> 弹窗 end*/}
+
+      <AddressModal entityId={addressEntityId} entityType="partnerOrg" open={addressOpen} onClose={() => { setAddressOpen(false); setAddressEntityId(null); }} />
     </>
   );
 }

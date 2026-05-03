@@ -3,36 +3,28 @@
 import { useEffect, useState } from 'react';
 import { Button, Form, Input, Modal, Select, Space, Table, TableProps, Tag, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import ContactController, { PartnerAddressDTO } from '@/api/crm/ContactController';
-import PartnerOrgController from '@/api/crm/PartnerOrgController';
+import CustomerController, { CustomerAddressDTO } from '@/api/shop/CustomerController';
 
-interface AddressModalProps {
-  entityId: string | null;
-  entityType: 'contact' | 'partnerOrg';
+interface CustomerAddressModalProps {
+  customerId: string | null;
   open: boolean;
   onClose: () => void;
 }
 
-export default function AddressModal({ entityId, entityType, open, onClose }: AddressModalProps) {
-  const [addressList, setAddressList] = useState<PartnerAddressDTO[]>([]);
+export default function CustomerAddressModal({ customerId, open, onClose }: CustomerAddressModalProps) {
+  const [addressList, setAddressList] = useState<CustomerAddressDTO[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 子表单状态
   const [formOpen, setFormOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<PartnerAddressDTO | null>(null);
+  const [editingAddress, setEditingAddress] = useState<CustomerAddressDTO | null>(null);
   const [saving, setSaving] = useState(false);
-  const [addressForm] = Form.useForm<PartnerAddressDTO>();
+  const [addressForm] = Form.useForm<CustomerAddressDTO>();
 
   const loadAddresses = async () => {
-    if (!entityId) return;
+    if (!customerId) return;
     setLoading(true);
     try {
-      let list: PartnerAddressDTO[];
-      if (entityType === 'contact') {
-        list = await ContactController.address(entityId);
-      } else {
-        list = await PartnerOrgController.address(entityId);
-      }
+      const list = await CustomerController.address(customerId);
       setAddressList(list || []);
     } finally {
       setLoading(false);
@@ -40,11 +32,11 @@ export default function AddressModal({ entityId, entityType, open, onClose }: Ad
   };
 
   useEffect(() => {
-    if (open && entityId) {
+    if (open && customerId) {
       loadAddresses();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, entityId]);
+  }, [open, customerId]);
 
   const handleAdd = () => {
     setEditingAddress(null);
@@ -52,13 +44,13 @@ export default function AddressModal({ entityId, entityType, open, onClose }: Ad
     setFormOpen(true);
   };
 
-  const handleEdit = (addr: PartnerAddressDTO) => {
+  const handleEdit = (addr: CustomerAddressDTO) => {
     setEditingAddress(addr);
     addressForm.setFieldsValue(addr);
     setFormOpen(true);
   };
 
-  const handleDelete = (addr: PartnerAddressDTO) => {
+  const handleDelete = (addr: CustomerAddressDTO) => {
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除该地址吗？',
@@ -66,11 +58,7 @@ export default function AddressModal({ entityId, entityType, open, onClose }: Ad
       okType: 'danger',
       cancelText: '取消',
       onOk: async () => {
-        if (entityType === 'contact') {
-          await ContactController.deleteAddress(entityId!, addr.partnerAddressId);
-        } else {
-          await PartnerOrgController.deleteAddress(entityId!, addr.partnerAddressId);
-        }
+        await CustomerController.deleteAddress(customerId!, addr.customerAddressId);
         message.success('删除成功');
         loadAddresses();
       },
@@ -81,29 +69,21 @@ export default function AddressModal({ entityId, entityType, open, onClose }: Ad
     setSaving(true);
     try {
       const values = await addressForm.validateFields();
-      const dto: PartnerAddressDTO = {
+      const dto: CustomerAddressDTO = {
         ...values,
-        partnerAddressId: editingAddress?.partnerAddressId || '',
-        partnerOrgId: editingAddress?.partnerOrgId || '',
-        contactId: editingAddress?.contactId || '',
+        customerAddressId: editingAddress?.customerAddressId || '',
+        customerOrgId: editingAddress?.customerOrgId || '',
+        customerId: editingAddress?.customerId || '',
         provinceCode: values.provinceCode || '',
         cityCode: values.cityCode || '',
         areaCode: values.areaCode || '',
       };
 
-      if (editingAddress?.partnerAddressId) {
-        if (entityType === 'contact') {
-          await ContactController.updateAddress(entityId!, editingAddress.partnerAddressId, dto);
-        } else {
-          await PartnerOrgController.updateAddress(entityId!, editingAddress.partnerAddressId, dto);
-        }
+      if (editingAddress?.customerAddressId) {
+        await CustomerController.updateAddress(customerId!, editingAddress.customerAddressId, dto);
         message.success('修改成功');
       } else {
-        if (entityType === 'contact') {
-          await ContactController.createAddress(entityId!, dto);
-        } else {
-          await PartnerOrgController.createAddress(entityId!, dto);
-        }
+        await CustomerController.createAddress(customerId!, dto);
         message.success('添加成功');
       }
       setFormOpen(false);
@@ -113,7 +93,7 @@ export default function AddressModal({ entityId, entityType, open, onClose }: Ad
     }
   };
 
-  const columns: TableProps<PartnerAddressDTO>['columns'] = [
+  const columns: TableProps<CustomerAddressDTO>['columns'] = [
     { title: '姓名', dataIndex: 'name', key: 'name' },
     { title: '电话', dataIndex: 'phone', key: 'phone' },
     {
@@ -167,14 +147,13 @@ export default function AddressModal({ entityId, entityType, open, onClose }: Ad
         <Table
           dataSource={addressList}
           columns={columns}
-          rowKey="partnerAddressId"
+          rowKey="customerAddressId"
           loading={loading}
           pagination={false}
           size="small"
         />
       </Modal>
 
-      {/* 添加/编辑子表单 */}
       <Modal
         title={editingAddress ? '编辑地址' : '添加地址'}
         open={formOpen}

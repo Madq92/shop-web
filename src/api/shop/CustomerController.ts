@@ -33,7 +33,7 @@ export default class CustomerController extends BaseController {
   }
 
   static updateAddress(customerId: string, customerAddressId: string, address: CustomerAddressDTO) {
-    return super.POST<boolean>(`/customer/${customerId}/address/${customerAddressId}`, address);
+    return super.PUT<boolean>(`/customer/${customerId}/address/${customerAddressId}`, address);
   }
 
   static deleteAddress(customerId: string, customerAddressId: string) {

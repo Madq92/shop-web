@@ -9,6 +9,7 @@ import { UserStatusLabels } from '@/api/sys/UserController';
 import DebounceSelect from '@/components/debounce-select';
 import CustomerController, { CustomerDTO, CustomerPageReq } from '@/api/shop/CustomerController';
 import CustomerOrgController, { CustomerOrgPageReq } from '@/api/shop/CustomerOrgController';
+import CustomerAddressModal from '@/app/(protected)/shop/components/customer-address-modal';
 
 const userStatusOption = enumToOptions(UserStatusLabels);
 
@@ -22,6 +23,8 @@ export default function CustomerPage() {
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [addressModalOpen, setAddressModalOpen] = useState<boolean>(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   const columns: TableProps<CustomerDTO>['columns'] = [
     {
@@ -69,6 +72,16 @@ export default function CustomerPage() {
       title: '操作',
       render: (_, customerDto) => (
         <>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setSelectedCustomerId(customerDto.customerId);
+              setAddressModalOpen(true);
+            }}
+          >
+            地址
+          </Button>
           <Button type="link" size="small" onClick={() => handleEdit(customerDto)}>
             编辑
           </Button>
@@ -268,6 +281,12 @@ export default function CustomerPage() {
         </Form>
       </Modal>
       {/*====> 弹窗 end*/}
+
+      <CustomerAddressModal
+        customerId={selectedCustomerId}
+        open={addressModalOpen}
+        onClose={() => setAddressModalOpen(false)}
+      />
     </>
   );
 }

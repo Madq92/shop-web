@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag, message } from 'antd';
 import Box from '@/components/box';
 import { PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
-import OrderController, { OrderDTO, OrderPageReq, OrderStatus, OrderStatusLabels } from '@/api/oms/OrderController';
+import OrderController, { DeliveryWay, DeliveryWayLabels, OrderDTO, OrderPageReq, OrderStatus, OrderStatusLabels } from '@/api/oms/OrderController';
 import { enumToOptions } from '@/api/types';
 import OrderDetailModal from './components/order-detail-modal';
 import DeliverModal from './components/deliver-modal';
@@ -128,6 +128,12 @@ export default function OrderPage() {
           {orderDTO.orderStatus != null ? OrderStatusLabels[orderDTO.orderStatus].label : '-'}
         </Tag>
       ),
+    },
+    {
+      title: '配送方式',
+      dataIndex: 'deliveryWay',
+      key: 'deliveryWay',
+      render: (v: DeliveryWay) => v ? <Tag color={DeliveryWayLabels[v]?.color}>{DeliveryWayLabels[v]?.label}</Tag> : '-',
     },
     {
       title: '操作',

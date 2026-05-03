@@ -152,6 +152,12 @@ export const PayTypeLabels: Record<PayType, TagLabel> = {
   WX_PAY: { label: '微信支付', color: 'green', name: 'WX_PAY' },
 };
 
+export type DeliveryWay = 'PICKUP' | 'DELIVERY';
+export const DeliveryWayLabels: Record<DeliveryWay, TagLabel> = {
+  PICKUP: { label: '买家自提', color: 'blue', name: 'PICKUP' },
+  DELIVERY: { label: '商家发货', color: 'green', name: 'DELIVERY' },
+};
+
 export type OrderStatus = 0 | 1 | 2 | 3 | 4 | 5;
 export const OrderStatusLabels: Record<OrderStatus, TagLabel> = {
   0: { label: '初始化', color: 'default', name: 'INIT' },
@@ -167,6 +173,7 @@ export const OrderStatusLabels: Record<OrderStatus, TagLabel> = {
  */
 export type OrderAddressModel = {
   partnerAddressId?: string;
+  customerAddressId?: string;
   receiverName?: string;
   receiverPhone?: string;
   province?: string;

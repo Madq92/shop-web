@@ -5,8 +5,8 @@ import { Button, Col, Descriptions, Form, Input, Row, Select, Space, Table, Tag,
 import React, { useState } from 'react';
 import Box from '@/components/box';
 import { useRouter } from 'next/navigation';
-import OrderController, { OrderDTO, OrderDetailModel, PayTypeLabels } from '@/api/oms/OrderController';
-import ContactController, { ContactDTO, PartnerAddressDTO } from '@/api/crm/ContactController';
+import OrderController, { DeliveryWayLabels, OrderDTO, OrderDetailModel, PayTypeLabels } from '@/api/oms/OrderController';
+import CustomerController, { CustomerDTO, CustomerAddressDTO } from '@/api/shop/CustomerController';
 import SpuController, { SkuDTO, SpuDTO } from '@/api/prod/SpuController';
 import DebounceSelect from '@/components/debounce-select';
 import { enumToOptions } from '@/api/types';
@@ -14,6 +14,7 @@ import { enumToOptions } from '@/api/types';
 const { TextArea } = Input;
 
 const payTypeOptions = enumToOptions(PayTypeLabels);
+const deliveryWayOptions = enumToOptions(DeliveryWayLabels);
 
 /** 购物车中的临时SKU项 */
 interface CartItem {
@@ -31,9 +32,9 @@ export default function OrderCreatePage() {
   const [form] = Form.useForm<OrderDTO>();
   const [submitting, setSubmitting] = useState(false);
 
-  // 选中的客户
-  const [selectedContact, setSelectedContact] = useState<ContactDTO | null>(null);
-  const [addressList, setAddressList] = useState<PartnerAddressDTO[]>([]);
+  // 选中的顾客
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerDTO | null>(null);
+  const [addressList, setAddressList] = useState<CustomerAddressDTO[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // SKU 明细
@@ -42,13 +43,14 @@ export default function OrderCreatePage() {
   // 搜索 SPU
   const [selectedSpuDetail, setSelectedSpuDetail] = useState<SpuDTO | null>(null);
   const [selectedSku, setSelectedSku] = useState<SkuDTO | null>(null);
+  const watchedDeliveryWay = Form.useWatch('deliveryWay', form);
 
-  const fetchContactList = async (name: string) => {
-    const result = await ContactController.page({ pageNum: 1, pageSize: 50, name: name || undefined });
+  const fetchCustomerList = async (name: string) => {
+    const result = await CustomerController.page({ pageNum: 1, pageSize: 50, name: name || undefined });
     return (result.records || []).map(c => ({
       label: `${c.name} (${c.phone || ''})`,
-      value: c.contactId,
-      contact: c,
+      value: c.customerId,
+      customer: c,
     }));
   };
 
@@ -75,18 +77,28 @@ export default function OrderCreatePage() {
   const handleAddSku = () => {
     if (!selectedSpuDetail || !selectedSku) return;
     const specDesc = (selectedSku.specs ?? []).map(s => `${s.name}: ${s.type}`).join(' / ')
-    setCartItems(prev => [
-      ...prev,
-      {
-        key: `${selectedSpuDetail.spuId}-${selectedSku.skuId}-${Date.now()}`,
-        spuId: selectedSpuDetail.spuId,
-        skuId: selectedSku.skuId || '',
-        productName: selectedSpuDetail.name,
-        specDesc,
-        price: (selectedSku.sellPrice ?? 0),
-        quantity: 1,
-      },
-    ]);
+    setCartItems(prev => {
+      const existing = prev.find(item => item.skuId === selectedSku.skuId);
+      if (existing) {
+        return prev.map(item =>
+          item.skuId === selectedSku.skuId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [
+        ...prev,
+        {
+          key: `${selectedSpuDetail.spuId}-${selectedSku.skuId}-${Date.now()}`,
+          spuId: selectedSpuDetail.spuId,
+          skuId: selectedSku.skuId || '',
+          productName: selectedSpuDetail.name,
+          specDesc,
+          price: (selectedSku.sellPrice ?? 0),
+          quantity: 1,
+        },
+      ];
+    });
     setSelectedSpuDetail(null);
     setSelectedSku(null);
   };
@@ -99,9 +111,9 @@ export default function OrderCreatePage() {
       const values = await form.validateFields();
       const orderDTO: OrderDTO = {
         ...values,
-        customerId: selectedContact?.contactId,
-        customerName: selectedContact?.name,
-        orderAddress: selectedAddressId ? { partnerAddressId: selectedAddressId } : undefined,
+        customerId: selectedCustomer?.customerId,
+        customerName: selectedCustomer?.name,
+        orderAddress: selectedAddressId ? { customerAddressId: selectedAddressId } : undefined,
         orderDetails: cartItems.map(item => ({
           skuId: item.skuId,
           name: item.productName,
@@ -164,19 +176,19 @@ export default function OrderCreatePage() {
 
         <Form.Item label="客户" rules={[{ required: true, message: '请选择客户' }]}>
           <DebounceSelect
-            fetchOptions={fetchContactList}
+            fetchOptions={fetchCustomerList}
             debounceTimeout={500}
             initLoad
-            placeholder="搜索并选择客户"
+            placeholder="搜索并选择顾客"
             onChange={(value, option) => {
               const opt = Array.isArray(option) ? option[0] : option;
-              const contact = (opt as unknown as { contact: ContactDTO })?.contact || null;
-              setSelectedContact(contact);
-              if (contact?.contactId) {
-                ContactController.address(contact.contactId).then(addresses => {
+              const customer = (opt as unknown as { customer: CustomerDTO })?.customer || null;
+              setSelectedCustomer(customer);
+              if (customer?.customerId) {
+                CustomerController.address(customer.customerId).then(addresses => {
                   setAddressList(addresses || []);
                   const defaultAddr = (addresses || []).find(a => a.defaultFlag === 'Y');
-                  setSelectedAddressId(defaultAddr?.partnerAddressId || addresses?.[0]?.partnerAddressId || null);
+                  setSelectedAddressId(defaultAddr?.customerAddressId || addresses?.[0]?.customerAddressId || null);
                 }).catch(() => setAddressList([]));
               } else {
                 setAddressList([]);
@@ -186,19 +198,27 @@ export default function OrderCreatePage() {
           />
         </Form.Item>
 
-        {selectedContact && (
+        {selectedCustomer && (
           <Row gutter={24} className="mb-4">
             <Col offset={4} span={16}>
               <Descriptions size="small" column={2} bordered>
-                <Descriptions.Item label="姓名">{selectedContact.name}</Descriptions.Item>
-                <Descriptions.Item label="电话">{selectedContact.phone}</Descriptions.Item>
-                <Descriptions.Item label="机构">{selectedContact.partnerOrgName}</Descriptions.Item>
+                <Descriptions.Item label="姓名">{selectedCustomer.name}</Descriptions.Item>
+                <Descriptions.Item label="电话">{selectedCustomer.phone}</Descriptions.Item>
+                <Descriptions.Item label="邮箱">{selectedCustomer.email || '-'}</Descriptions.Item>
               </Descriptions>
             </Col>
           </Row>
         )}
 
-        {addressList.length > 0 && (
+        <Form.Item label="支付方式" name="payType">
+          <Select placeholder="请选择支付方式" allowClear options={payTypeOptions} />
+        </Form.Item>
+
+        <Form.Item label="配送方式" name="deliveryWay">
+          <Select placeholder="请选择配送方式" allowClear options={deliveryWayOptions} />
+        </Form.Item>
+
+        {watchedDeliveryWay === 'DELIVERY' && addressList.length > 0 && (
           <Form.Item label="收货地址" rules={[{ required: true, message: '请选择收货地址' }]}>
             <Select
               placeholder="请选择收货地址"
@@ -207,15 +227,11 @@ export default function OrderCreatePage() {
               onChange={setSelectedAddressId}
               options={addressList.map(addr => ({
                 label: `${addr.name} ${addr.phone} - ${addr.provinceName}${addr.cityName}${addr.areaName}${addr.address}`,
-                value: addr.partnerAddressId,
+                value: addr.customerAddressId,
               }))}
             />
           </Form.Item>
         )}
-
-        <Form.Item label="支付方式" name="payType">
-          <Select placeholder="请选择支付方式" allowClear options={payTypeOptions} />
-        </Form.Item>
 
         <Form.Item label="商家备注" name="merchantRemark">
           <TextArea rows={2} placeholder="商家备注（可选）" />

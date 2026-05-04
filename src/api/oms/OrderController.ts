@@ -43,12 +43,7 @@ export default class OrderController extends BaseController {
 
   /** 确认下单：INIT → ORDERED */
   static confirmOrder(orderId: string): Promise<boolean> {
-    return super.PUT<boolean>(`/mini/order/${orderId}/confirm`);
-  }
-
-  /** 支付：ORDERED → PAID */
-  static pay(orderId: string): Promise<boolean> {
-    return super.PUT<boolean>(`/mini/order/${orderId}/pay`);
+    return super.PUT<boolean>(`/order/${orderId}/confirm`);
   }
 
   /** 管理端发货：PAID → DELIVERED */
@@ -57,13 +52,8 @@ export default class OrderController extends BaseController {
   }
 
   /** 取消订单（管理端）：ORDERED → CLOSED */
-  static cancelOrder(orderId: string): Promise<boolean> {
-    return super.PUT<boolean>(`/mini/order/${orderId}/cancel`);
-  }
-
-  /** 确认收货（管理端）：DELIVERED → RECEIVED */
-  static receiveOrder(orderId: string): Promise<boolean> {
-    return super.PUT<boolean>(`/mini/order/${orderId}/receive`);
+  static closeOrder(orderId: string): Promise<boolean> {
+    return super.PUT<boolean>(`/order/${orderId}/close`);
   }
 
   /** 管理端关闭订单：PAID → CLOSED */
@@ -158,14 +148,24 @@ export const DeliveryWayLabels: Record<DeliveryWay, TagLabel> = {
   DELIVERY: { label: '商家发货', color: 'green', name: 'DELIVERY' },
 };
 
-export type OrderStatus = 0 | 1 | 2 | 3 | 4 | 5;
+export type OrderStatus = 'INIT' | 'ORDERED' | 'PAID' | 'DELIVERED' | 'RECEIVED' | 'CLOSED';
 export const OrderStatusLabels: Record<OrderStatus, TagLabel> = {
-  0: { label: '初始化', color: 'default', name: 'INIT' },
-  1: { label: '已下单', color: 'blue', name: 'ORDERED' },
-  2: { label: '已付款', color: 'green', name: 'PAID' },
-  3: { label: '已发货', color: 'cyan', name: 'DELIVERED' },
-  4: { label: '已收货', color: 'green', name: 'RECEIVED' },
-  5: { label: '已关闭', color: 'red', name: 'CLOSED' },
+  INIT: { label: '初始化', color: 'default', name: 'INIT' },
+  ORDERED: { label: '已下单', color: 'blue', name: 'ORDERED' },
+  PAID: { label: '已付款', color: 'green', name: 'PAID' },
+  DELIVERED: { label: '已发货', color: 'cyan', name: 'DELIVERED' },
+  RECEIVED: { label: '已收货', color: 'green', name: 'RECEIVED' },
+  CLOSED: { label: '已关闭', color: 'red', name: 'CLOSED' },
+};
+
+/** 订单状态 code → label，用于查询表单（后端按数字 code 查询） */
+export const OrderStatusCodeLabels: Record<number, string> = {
+  0: '初始化',
+  1: '已下单',
+  2: '已付款',
+  3: '已发货',
+  4: '已收货',
+  5: '已关闭',
 };
 
 /**

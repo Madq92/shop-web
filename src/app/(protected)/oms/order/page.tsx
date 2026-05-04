@@ -5,22 +5,22 @@ import { useRouter } from 'next/navigation';
 import { Button, Col, Form, Input, Modal, Row, Select, Space, Table, TableProps, Tag, message } from 'antd';
 import Box from '@/components/box';
 import { PlusOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
-import OrderController, { DeliveryWay, DeliveryWayLabels, OrderDTO, OrderPageReq, OrderStatus, OrderStatusLabels } from '@/api/oms/OrderController';
+import OrderController, { DeliveryWay, DeliveryWayLabels, OrderDTO, OrderPageReq, OrderStatus, OrderStatusCodeLabels, OrderStatusLabels } from '@/api/oms/OrderController';
 import { enumToOptions } from '@/api/types';
 import OrderDetailModal from './components/order-detail-modal';
 import DeliverModal from './components/deliver-modal';
 import ReturnModal from './components/return-modal';
 
-const orderStatusOptions = enumToOptions(OrderStatusLabels);
+const orderStatusOptions = enumToOptions(OrderStatusCodeLabels);
 
 /** 根据 orderStatus 返回可执行的操作类型 */
 function getActions(status?: OrderStatus): string[] {
   switch (status) {
-    case 0: return ['confirm', 'edit', 'delete'];
-    case 1: return ['pay', 'cancel', 'edit'];
-    case 2: return ['deliver', 'close', 'edit'];
-    case 3: return ['receive'];
-    case 5: return ['delete'];
+    case 'INIT': return ['confirm', 'edit', 'delete'];
+    case 'ORDERED': return ['pay', 'cancel', 'edit'];
+    case 'PAID': return ['deliver', 'close', 'edit'];
+    case 'DELIVERED': return ['receive'];
+    case 'CLOSED': return ['delete'];
     default: return [];
   }
 }
@@ -50,18 +50,6 @@ export default function OrderPage() {
         case 'confirm':
           await OrderController.confirmOrder(orderId);
           message.success('确认下单成功');
-          break;
-        case 'pay':
-          await OrderController.pay(orderId);
-          message.success('支付成功');
-          break;
-        case 'cancel':
-          await OrderController.cancelOrder(orderId);
-          message.success('取消成功');
-          break;
-        case 'receive':
-          await OrderController.receiveOrder(orderId);
-          message.success('收货成功');
           break;
         case 'close':
           await OrderController.adminClose(orderId);
@@ -142,7 +130,7 @@ export default function OrderPage() {
         const actions = getActions(orderDTO.orderStatus);
         return (
           <Space>
-            <Button type="link" size="small" onClick={() => { setDetailOrderId(orderDTO.orderId!); setDetailOpen(true); setDetailEditable(orderDTO.orderStatus === 0 || orderDTO.orderStatus === 1); }}>
+            <Button type="link" size="small" onClick={() => { setDetailOrderId(orderDTO.orderId!); setDetailOpen(true); setDetailEditable(orderDTO.orderStatus === 'INIT' || orderDTO.orderStatus === 'ORDERED'); }}>
               详情
             </Button>
             {actions.includes('edit') && (
